@@ -26,6 +26,7 @@ class App {
     this.router.use('/static/', express.static(path.join(__dirname, 'static')))
 
     this.router.get('/', (req, res) => res.render('home'))
+    this.router.get('/list/', (req, res) => res.render('list'))
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }

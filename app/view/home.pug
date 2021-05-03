@@ -15,7 +15,7 @@ block main
               figure
                 .skeleton-image
                 figcaption.text-center.mt-2 側面画像
-        .flex-grow-0.mt-3(style='flex-basis: 400px; padding-bottom: 90px')
+        .flex-grow-0.mt-3(style='flex-basis: 400px; padding-bottom: 80px')
           form(role='form')
             fieldset
               legend 外寸
@@ -95,18 +95,25 @@ block main
                           span.is-inner(style='background: ' + el[1])
                         | #{el[0]}
 
+            hr.mt-4.mb-4
+
+            fieldset
+              legend 数量
+              .form-group.mb-3
+                input.form-control(type='number' name='number' id='number' min='1' max='10' step='1' aria-describedby='numberDescription' aria-label='本棚の台数')
+                #numberDescription
+
             .position-fixed.w-100(style='left: 0; bottom: 0; z-index: 1021')
               .border-top.bg-white.px-3
                 .d-flex.align-items-center(style='height: 60px')
                   dl.mb-0.ms-auto
-                    dt.d-inline-block.me-1.fw-normal 納期
-                    dd.d-inline-block.mb-0.me-3 <span style="font-size: 1.5rem;">20</span>日
-
-                    dt.d-inline-block.me-1.fw-normal 価格
+                    dt.d-inline-block.me-1.fw-normal 単価
                     dd.d-inline-block.mb-0.me-3 &yen;<span style="font-size: 1.5rem;">20,000</span>(税込)
 
-                  a.btn.btn-primary(href='./list/' style='flex-basis: 200px;') 保存リストに追加
-              
+                    dt.d-inline-block.me-1.fw-normal 金額
+                    dd.d-inline-block.mb-0.me-3 &yen;<span style="font-size: 1.5rem;">20,000</span>(税込)
+
+                  a.btn.btn-primary(href='./list/') 保存リストに追加
 
 block footer
 
