@@ -14,6 +14,14 @@ block main
     .container-fluid
       h1.mt-3 お問い合わせ
       form
+        fieldset.mb-3
+          legend.fs-6 お問い合わせの種類
+          .form-check
+            input.form-check-input(type='radio' name='category' id='category1' value='法人割引について') 
+            label.form-check-label(for='category1') 商品について
+          .form-check
+            input.form-check-input(type='radio' name='category' id='category0' value='法人割引について') 
+            label.form-check-label(for='category0') 法人割引について
         .form-group.mb-3
           label.form-label(for='name') お名前
           input.form-control(type='text' name='name' id='name' aria-required='true')

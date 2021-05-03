@@ -38,6 +38,10 @@ class App {
     this.router.get('/order/review/', (req, res) => res.render('order-review'))
     this.router.get('/order/payment/', (req, res) => res.render('order-payment'))
     this.router.get('/order/finish/', (req, res) => res.render('order-finish'))
+    this.router.get('/estimate/', (req, res) => res.render('estimate-index'))
+    this.router.get('/estimate/review/', (req, res) => res.render('estimate-review'))
+    this.router.get('/estimate/finish/', (req, res) => res.render('estimate-finish'))
+    this.router.get('/estimate/print/', (req, res) => res.render('estimate-print'))
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }

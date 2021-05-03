@@ -1,0 +1,81 @@
+doctype html
+html(lang='ja')
+  head
+    block meta
+      meta(charset='utf-8')
+      meta(name='viewport' content='width=device-width, initial-scale=1')
+    block title
+      title 見積書（オーダーメイド本棚）
+    block style
+      link(rel='stylesheet' href='/static/css/bootstrap-reboot.min.css')
+      link(rel='stylesheet' href='/static/css/bootstrap-grid.min.css')
+      link(rel='stylesheet' href='/static/css/bootstrap-utilities.min.css')
+      link(rel='stylesheet' href='/static/css/print.css')
+  body
+    block body
+      block main
+        main
+          .container-a4
+            nav(aria-label='メニュー')
+              .d-print-none
+                .mt-3.mb-3.text-end
+                  button.px-3(type='button') 印刷
+            .paper
+              .estimate
+                .estimate-date 2021年5月3日
+                .estimate-number 見積番号：20210503-001
+                .estimate-header 見積書
+                .row
+                  .col
+                    .estimate-left
+                      .estimate-customer 株式会社ロレムイプサム 御中
+                      .estimate-subject 件名：オーダーメイド本棚
+                      .estimate-expiration 有効期限：2021年5月10日
+                      .estimate-content 下記のとおりお見積申し上げます。
+                      .estimate-total
+                        .d-flex
+                          .estimate-total-text お見積金額
+                          .estimate-total-value.ms-auto &yen;1,320,000-
+                  .col
+                    .estimate-right
+                      .estimate-issuer 株式会社ロレムイプサム <br> 代表取締役　薄田達哉
+                      .estimate-address 〒940-2039 <br> 新潟県長岡市関原南4丁目3934番地
+                      .estimate-tel TEL：0258-94-5233
+                      .estimate-fax FAX：0258-94-5541
+                      .estimate-email E-mail：demo@loremipsum.co.jp
+                .estimate-table
+                  table
+                    thead
+                      tr
+                        th.is-product 品番・品名
+                        th.is-amount 数量
+                        th.is-price 単価
+                        th.is-total 金額
+                    tbody
+                      tr
+                        td オーダーメイド本棚｜仕様書1(別紙)
+                        td 1台
+                        td 100,000
+                        td 100,000
+                      each el in new Array(9)
+                        tr
+                          td &nbsp;
+                          td &nbsp;
+                          td &nbsp;
+                          td &nbsp;
+                    tfoot
+                      tr
+                        td.is-blank &nbsp;
+                        td(colspan='2') 小計
+                        td 1,200,000
+                      tr
+                        td.is-blank &nbsp;
+                        td(colspan='2') 消費税（10％）
+                        td 120,000
+                      tr
+                        td.is-blank &nbsp;
+                        td(colspan='2') 合計
+                        td 1,320,000
+                .estimate-memo.
+                  納入期限：2021年6月3日 <br>
+                  納入期限：別途打合せ

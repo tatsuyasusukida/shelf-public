@@ -1,0 +1,113 @@
+body {
+  background: #f8f9fa;
+}
+
+.container-a4 {
+  width: 210mm;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.paper {
+  min-height: 297mm;
+  background: #ffffff;
+  border: 1px solid #212529;
+  padding: 10mm;
+}
+
+.estimate {
+  line-height: 1.5;
+  font-size: 12pt;
+  font-family: serif;
+}
+
+.estimate-date {
+  text-align: right;
+}
+
+.estimate-number {
+  text-align: right;
+}
+
+.estimate-header {
+  font-size: 24pt;
+  text-align: center;
+  margin-top: 5mm;
+  margin-bottom: 5mm;
+}
+
+.estimate-left {
+  padding-right: 5mm;
+}
+
+.estimate-right {
+  padding-left: 5mm;
+}
+
+.estimate-customer {
+  display: inline-block;
+  font-size: 16pt;
+  border-bottom: 2pt solid #000;
+}
+
+.estimate-subject {
+  margin-top: 5mm;
+}
+
+.estimate-content {
+  margin-top: 5mm;
+}
+
+.estimate-total {
+  margin-top: 5mm;
+  font-size: 16pt;
+  border-bottom: 2pt solid #000;
+}
+
+.estimate-issuer {
+  font-size: 12pt;
+}
+
+.estimate-address {
+  margin-top: 5mm;
+}
+
+.estimate-tel {
+  margin-top: 5mm;
+}
+
+.estimate-table table {
+  margin-top: 5mm;
+  width: 100%;
+}
+
+.estimate-table th {
+  text-align: center;
+  border: 2pt solid #000;
+  padding: 2mm;
+}
+
+.estimate-table td {
+  border: 2pt solid #000;
+  padding: 2mm;
+}
+
+.estimate-table th.is-amount {
+  width: 25mm;
+}
+
+.estimate-table th.is-price {
+  width: 25mm;
+}
+
+.estimate-table th.is-total {
+  width: 30mm;
+}
+
+.estimate-table td.is-blank {
+  border: 0;
+}
+
+.estimate-memo {
+  margin-top: 5mm;
+}

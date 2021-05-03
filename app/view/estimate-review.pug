@@ -1,0 +1,36 @@
+extends ./layout
+include ./product-item
+
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 見積書
+
+block main
+  main
+    .container-fluid
+      h1.mt-3 見積書の発行
+
+      dl.mb-0
+        dt 宛名
+        dd 株式会社ロレムイプサム 御中
+
+        dt メールアドレス
+        dd demo@loremipsum.co.jp
+
+        dt 当社からのメール連絡
+        dd.mb-0 希望する
+
+        .row.mt-3
+          .col-6.order-last
+            .d-grid
+              a.btn.btn-primary(href='../finish/') 発行
+          .col-6
+            .d-grid
+              a.btn.btn-secondary(href='../')
+                span(aria-hidden='true') &laquo; 
+                | 入力画面へ戻る

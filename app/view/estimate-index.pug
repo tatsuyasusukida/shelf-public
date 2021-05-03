@@ -1,0 +1,40 @@
+extends ./layout
+
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 見積書
+
+block main
+  main
+    .container-fluid
+      h1.mt-3 見積書の発行
+      form
+        .form-group.mb-3
+          label.form-label(for='customer') 宛名
+          input.form-control(type='text' name='customer' id='customer' aria-required='true')
+        fieldset.mb-3
+          legend.fs-6 宛名の敬称
+          .form-check
+            input.form-check-input(type='radio' name='title' id='title1' value='法人割引について') 
+            label.form-check-label(for='title1') 御中
+          .form-check
+            input.form-check-input(type='radio' name='title' id='title0' value='法人割引について') 
+            label.form-check-label(for='title0') 様
+        .form-group.mb-3
+          label.form-label(for='email') メールアドレス
+          input.form-control(type='email' name='email' id='email' aria-required='true')
+        .form-check.mb-3
+          input.form-check-input(type='checkbox' name='category' id='category') 
+          label.form-check-label(for='category') 当社からのメール連絡を希望する
+
+        .row.justify-content-end
+          .col-6
+            .d-grid
+              a.btn.btn-primary(href='./review/')
+                | 確認画面へ進む 
+                span(aria-hidden='true') &raquo;
