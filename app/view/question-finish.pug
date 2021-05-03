@@ -1,0 +1,27 @@
+extends ./layout
+
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='../') お問い合わせ
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 完了
+
+block main
+  main
+    .container-fluid
+      h1.mt-3 お問い合わせ完了
+      p お問い合わせが完了しました。
+      dl
+        dt お問い合わせ日時
+        dd 2021年5月3日(月)
+
+        dt お問い合わせ番号
+        dd 1111-2222-3333
+
+      .d-grid
+        a.btn.btn-success(href='../../../list/') 保存リストを表示する

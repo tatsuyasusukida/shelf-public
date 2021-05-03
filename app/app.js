@@ -31,6 +31,9 @@ class App {
     this.router.get('/product/:productId([0-9]+)/edit/', (req, res) => res.render('product-edit'))
     this.router.get('/product/:productId([0-9]+)/delete/', (req, res) => res.render('product-delete'))
     this.router.get('/product/delete/finish/', (req, res) => res.render('product-delete-finish'))
+    this.router.get('/question/', (req, res) => res.render('question-index'))
+    this.router.get('/question/review/', (req, res) => res.render('question-review'))
+    this.router.get('/question/finish/', (req, res) => res.render('question-finish'))
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }
