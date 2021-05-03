@@ -8,13 +8,13 @@ block breadcrumb
         li.breadcrumb-item
           a(href='../../list/') 保存リスト
         li.breadcrumb-item
-          a(href='./' aria-current='page') 追加
+          a(href='./' aria-current='page') 変更
 
 block main
   main
     .container-fluid
-      h1.mt-3 商品の追加
-      +product-form(submit={href: '../../list/', text: '保存リストに追加する'})
+      h1.mt-3 商品の変更
+      +product-form(submit={href: '../../../list/', text: '保存リストを更新する'})
 
 block footer
 
