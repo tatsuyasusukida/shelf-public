@@ -1,0 +1,58 @@
+extends ./layout
+
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 注文
+
+block main
+  main
+    .container-fluid
+      h1.mt-3 注文
+      form
+        .form-group.mb-3
+          label.form-label(for='name') お名前
+          input.form-control(type='text' name='name' id='name' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='kana') フリガナ
+          input.form-control(type='text' name='kana' id='kana' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='company') 会社名
+          input.form-control(type='text' name='company' id='company' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='zip') 郵便番号
+          input.form-control(type='number' name='zip' id='zip' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='address') 住所
+          input.form-control(type='text' name='address' id='address' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='tel') 電話番号
+          input.form-control(type='tel' name='tel' id='tel' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='email') メールアドレス
+          input.form-control(type='email' name='email' id='email' aria-required='true')
+        .form-group.mb-3
+          label.form-label(for='memo') 備考
+          textarea.form-control(rows='7' name='memo' id='memo' aria-required='false')
+        fieldset.mb-3
+          legend.fs-6 お支払い方法
+          .form-check
+            input.form-check-input(type='radio' name='payment' id='payment0' value='クレジットカード')
+            label.form-check-label(for='payment0') クレジットカード
+          .form-check
+            input.form-check-input(type='radio' name='payment' id='payment0' value='銀行振込')
+            label.form-check-label(for='payment0') 銀行振込
+          .form-check
+            input.form-check-input(type='radio' name='payment' id='payment0' value='代金引換')
+            label.form-check-label(for='payment0') 代金引換
+
+        .row.justify-content-end
+          .col-6
+            .d-grid
+              a.btn.btn-primary(href='./review/')
+                | 確認画面へ進む 
+                span(aria-hidden='true') &raquo;

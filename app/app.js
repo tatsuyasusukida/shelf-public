@@ -34,6 +34,10 @@ class App {
     this.router.get('/question/', (req, res) => res.render('question-index'))
     this.router.get('/question/review/', (req, res) => res.render('question-review'))
     this.router.get('/question/finish/', (req, res) => res.render('question-finish'))
+    this.router.get('/order/', (req, res) => res.render('order-index'))
+    this.router.get('/order/review/', (req, res) => res.render('order-review'))
+    this.router.get('/order/payment/', (req, res) => res.render('order-payment'))
+    this.router.get('/order/finish/', (req, res) => res.render('order-finish'))
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }
