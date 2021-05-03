@@ -1,9 +1,18 @@
 extends ./layout
 
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 追加
+
 block main
   main
     .container-fluid
-      h1.mt-3 オプション選択
+      h1.mt-3 商品の追加
       .d-md-flex.gap-3
         .flex-grow-1.mt-3
           .row.justify-content-center.gx-3.gy-3.sticky-md-top
@@ -113,7 +122,7 @@ block main
                     dt.d-inline-block.me-1.fw-normal 金額
                     dd.d-inline-block.mb-0.me-3 &yen;<span style="font-size: 1.5rem;">20,000</span>(税込)
 
-                  a.btn.btn-primary(href='./list/') 保存リストに追加
+                  a.btn.btn-primary(href='../../list/') 保存リストに追加する
 
 block footer
 

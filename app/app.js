@@ -25,8 +25,11 @@ class App {
     this.router.use(this.onRequestInitialize.bind(this))
     this.router.use('/static/', express.static(path.join(__dirname, 'static')))
 
-    this.router.get('/', (req, res) => res.render('home'))
+    this.router.get('/', (req, res) => res.redirect('./product/add/'))
     this.router.get('/list/', (req, res) => res.render('list'))
+    this.router.get('/product/add/', (req, res) => res.render('product-add'))
+    this.router.get('/product/:productId([0-9]+)/delete/', (req, res) => res.render('product-delete'))
+    this.router.get('/product/delete/finish/', (req, res) => res.render('product-delete-finish'))
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }

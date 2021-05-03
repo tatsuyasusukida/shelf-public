@@ -1,0 +1,18 @@
+extends ./layout
+
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../../../list/') 保存リスト
+        li.breadcrumb-item.active 削除
+        li.breadcrumb-item.active 完了
+
+block main
+  main
+    .container-fluid
+      h1.mt-3 削除完了
+      p 保存リストから商品を削除しました。
+      .d-grid
+        a.btn.btn-success(href='../../../list/') 保存リストを表示する

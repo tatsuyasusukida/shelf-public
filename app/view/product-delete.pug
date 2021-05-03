@@ -5,18 +5,17 @@ block breadcrumb
     .container-fluid
       ol.breadcrumb
         li.breadcrumb-item
-          a(href='./' aria-current='page') 保存リスト
+          a(href='../../../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 商品の削除
 
 block main
   main
     .container-fluid
-      h1.mt-3 保存リスト
+      h1.mt-3 商品の削除
+      p 保存リストから商品を削除してもよろしいですか？
       section
-        h2 商品1
-        nav.mt-3(aria-label='商品1のメニュー')
-          .d-flex.flex-wrap.gap-2
-            a.btn.btn-outline-primary(href='../product/1234/edit/') 変更
-            a.btn.btn-outline-danger(href='../product/1234/delete/') 削除
+        h2 商品について
         .row.gx-3.mt-3
           .col-12.col-sm-6
             .row.gx-2
@@ -67,10 +66,7 @@ block main
         .row.gx-3
           .col
             .d-grid
-              a.btn.btn-outline-primary(href='../question/') お問い合わせ
+              a.btn.btn-secondary(href='../../../list/') キャンセル
           .col
             .d-grid
-              a.btn.btn-outline-primary(href='../order/') 注文
-
-        .d-flex.justify-content-end.mt-3
-          a.btn.btn-outline-secondary(href='../product/add/') 別の商品を追加する
+              a.btn.btn-danger(href='../../delete/finish/') 削除
