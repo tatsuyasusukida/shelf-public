@@ -1,5 +1,8 @@
 extends ./layout
 
+block title
+  title クレジットカード決済｜オーダーメイド本棚注文システム（デモ）
+
 block body
   main
     .container-fluid
@@ -9,23 +12,27 @@ block body
           form(role='form')
             .form-group.mb-3
               label.form-label(for='number') カード番号
-              input.form-control(type='number' name='number' id='number' aria-required='true')
+              input.form-control(type='number' name='number' id='number' aria-required='true' aria-describedby='numberHelp' readonly value='0000111122223333')
+              p.form-text(id='numberHelp') デモのためカード番号を入力できません。
             .form-group.mb-3
               label.form-label(for='name') 名義
-              input.form-control(type='text' name='name' id='name' aria-required='true')
+              input.form-control(type='text' name='name' id='name' aria-required='true' aria-describedby='numberHelp' readonly value='0000111122223333')
+              p.form-text(id='nameHelp') デモのため名義を入力できません。
             fieldset.mb-3
               legend.fs-6 有効期限
               .row
                 .col
                   .input-group
-                    input.form-control(type='number' name='month' id='month' min='1' max='12' step='1' aria-required='true')
+                    input.form-control(type='number' name='month' id='month' min='1' max='12' step='1' aria-required='true' aria-describedby='expirationHelp' readonly value='12')
                     label.input-group-text(for='month') 月
                 .col
                   .input-group
-                    input.form-control(type='number' name='month' id='month' min='2021' step='1' aria-required='true')
+                    input.form-control(type='number' name='month' id='month' min='2021' step='1' aria-required='true' aria-describedby='expirationHelp' readonly value='2020')
                     label.input-group-text(for='month') 年
+              p.form-text(id='expirationHelp') デモのため有効期限を入力できません。
             .form-group.mb-3
               label.form-label(for='code') セキュリティコード
-              input.form-control(type='number' name='code' id='code' aria-required='true')
+              input.form-control(type='number' name='code' id='code' aria-required='true' aria-describedby='codeHelp' readonly value='123')
+              p.form-text(id='expirationHelp') デモのためセキュリティコードを入力できません。
             .d-grid
               a.btn.btn-primary(href='../finish/') このカードで支払う

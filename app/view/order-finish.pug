@@ -1,5 +1,8 @@
 extends ./layout
 
+block title
+  title 注文完了｜オーダーメイド本棚注文システム（デモ）
+
 block breadcrumb
   nav.mt-3(aria-label='パンくずリスト')
     .container-fluid
@@ -15,13 +18,29 @@ block main
   main
     .container-fluid
       h1.mt-3 注文完了
-      p 注文が完了しました。
+      p
+        | この度はご注文をいただきましてありがとうございます。<br>
+        | 下記の通り注文番号を発行しましたのでお知らせいたします。
       dl
-        dt 注文日時
-        dd 2021年5月3日(月)
-
         dt 注文番号
         dd 1111-2222-3333
+      p
+        | 注文内容をメールにて送信いたしましたのでご確認ください。<br>
+        | メールが届かない場合、誠に恐れ入りますが下記までお問い合わせください。
+      dl
+        dt 電話番号
+        dd 0258-94-5233
+
+        dt メールアドレス
+        dd shelf@loremipsum.co.jp
+
+        dt お願い
+        dd
+          p.mb-0
+            | お問い合わせの際は下記3点をお知らせください。<br>
+            | 1. お名前<br>
+            | 2. 注文番号<br>
+            | 3. 注文日
 
       .d-grid
         a.btn.btn-success(href='../../../list/') 保存リストを表示する

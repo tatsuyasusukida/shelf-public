@@ -1,5 +1,8 @@
 extends ./layout
 
+block title
+  title お問い合わせ｜オーダーメイド本棚注文システム（デモ）
+
 block breadcrumb
   nav.mt-3(aria-label='パンくずリスト')
     .container-fluid
@@ -17,35 +20,46 @@ block main
         fieldset.mb-3
           legend.fs-6 お問い合わせの種類
           .form-check
-            input.form-check-input(type='radio' name='category' id='category1' value='法人割引について') 
+            input.form-check-input(type='radio' name='category' id='category1' value='法人割引について' checked)
             label.form-check-label(for='category1') 商品について
           .form-check
-            input.form-check-input(type='radio' name='category' id='category0' value='法人割引について') 
+            input.form-check-input(type='radio' name='category' id='category0' value='法人割引について')
             label.form-check-label(for='category0') 法人割引について
         .form-group.mb-3
           label.form-label(for='name') お名前
-          input.form-control(type='text' name='name' id='name' aria-required='true')
+          input.form-control(type='text' name='name' id='name' aria-required='true' aria-describedby='nameHelp' readonly value='ここに氏名が入ります')
+          p.form-text(id='nameHelp') デモのためお名前を入力できません。
         .form-group.mb-3
           label.form-label(for='kana') フリガナ
-          input.form-control(type='text' name='kana' id='kana' aria-required='true')
+          input.form-control(type='text' name='kana' id='kana' aria-required='true' aria-describedby='kanaHelp' readonly value='ここにフリガナが入ります')
+          p.form-text(id='kanaHelp') デモのためフリガナを入力できません。
         .form-group.mb-3
           label.form-label(for='company') 会社名
-          input.form-control(type='text' name='company' id='company' aria-required='true')
+          input.form-control(type='text' name='company' id='company' aria-required='true' aria-describedby='companyHelp' readonly value='株式会社ロレムイプサム')
+          p.form-text(id='companyHelp') デモのため会社名を入力できません。
         .form-group.mb-3
           label.form-label(for='zip') 郵便番号
-          input.form-control(type='number' name='zip' id='zip' aria-required='true')
+          input.form-control(type='number' name='zip' id='zip' aria-required='true' aria-describedby='zipHelp' readonly value='9402039')
+          p.form-text(id='zipHelp') デモのため郵便番号を入力できません。
         .form-group.mb-3
           label.form-label(for='address') 住所
-          input.form-control(type='text' name='address' id='address' aria-required='true')
+          input.form-control(type='text' name='address' id='address' aria-required='true' aria-describedby='addressHelp' readonly value='新潟県長岡市関原南4丁目3934番地')
+          p.form-text(id='addressHelp') デモのため住所を入力できません。
         .form-group.mb-3
           label.form-label(for='tel') 電話番号
-          input.form-control(type='tel' name='tel' id='tel' aria-required='true')
+          input.form-control(type='tel' name='tel' id='tel' aria-required='true' aria-describedby='telHelp' readonly value='0258945233')
+          p.form-text(id='telHelp') デモのため電話番号を入力できません。
         .form-group.mb-3
           label.form-label(for='email') メールアドレス
-          input.form-control(type='email' name='email' id='email' aria-required='true')
+          input.form-control(type='email' name='email' id='email' aria-required='true' aria-describedby='emailHelp' readonly value='shelf@loremipsum.co.jp')
+          p.form-text(id='emailHelp') デモのためメールアドレスを入力できません。
         .form-group.mb-3
           label.form-label(for='content') お問い合わせの内容
-          textarea.form-control(rows='7' name='content' id='content' aria-required='true')
+          textarea.form-control(rows='7' name='content' id='content' aria-required='true' aria-describedby='memoHelp' readonly)
+            | ここにテキストが入ります。
+            | ここにテキストが入ります。
+            | ここにテキストが入ります。
+          p.form-text(id='memoHelp') デモのため備考を入力できません。
 
         .row.justify-content-end
           .col-6

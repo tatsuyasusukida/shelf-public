@@ -1,6 +1,9 @@
 extends ./layout
 include ./product-item
 
+block title
+  title お問い合わせ｜オーダーメイド本棚注文システム（デモ）
+
 block breadcrumb
   nav.mt-3(aria-label='パンくずリスト')
     .container-fluid
@@ -62,14 +65,14 @@ block main
           dd 0258945233
 
           dt メールアドレス
-          dd demo@loremipsum.co.jp
+          dd shelf@loremipsum.co.jp
 
           dt お問い合わせの内容
           dd.mb-0
             p.mb-0.
-              ここに本文が入ります。<br>
-              ここに本文が入ります。<br>
-              ここに本文が入ります。
+              ここにテキストが入ります。<br>
+              ここにテキストが入ります。<br>
+              ここにテキストが入ります。
 
         .row.mt-3
           .col-6.order-last
@@ -77,6 +80,6 @@ block main
               a.btn.btn-primary(href='../finish/') お問い合わせ
           .col-6
             .d-grid
-              a.btn.btn-secondary(href='../')
+              a.btn.btn-link(href='../')
                 span(aria-hidden='true') &laquo; 
                 | 入力画面へ戻る

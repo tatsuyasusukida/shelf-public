@@ -1,5 +1,8 @@
 extends ./layout
 
+block title
+  title 見積書の発行完了｜オーダーメイド本棚注文システム（デモ）
+
 block breadcrumb
   nav.mt-3(aria-label='パンくずリスト')
     .container-fluid
@@ -7,7 +10,7 @@ block breadcrumb
         li.breadcrumb-item
           a(href='../../list/') 保存リスト
         li.breadcrumb-item
-          a(href='../') お問い合わせ
+          a(href='../') 見積書
         li.breadcrumb-item
           a(href='./' aria-current='page') 完了
 
@@ -20,5 +23,5 @@ block main
       nav(aria-label='メイン')
         .d-grid.gap-2
           a.btn.btn-success(href='../print/' target='_blank') 見積書を表示する
-        .mt-2
+        .mt-3
           a(href='../../list/') 保存リストに戻る
