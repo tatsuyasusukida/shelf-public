@@ -30,8 +30,16 @@ html(lang='ja')
                       li.nav-item
                         a.nav-link(href='/list/') 保存リスト
         block breadcrumb
+          nav.mt-3(aria-label='パンくずリスト')
+            .container-fluid
+              ol.breadcrumb
+                li.breadcrumb-item
+                  a(href='./' aria-current='page') パンくずリスト
         #content
           block main
+            main
+              .container-fluid
+                .pt-5.pb-5.text-center.border.mt-3 メインコンテンツ
         block backward
           nav(aria-label='戻る')
             .position-fixed(style='bottom: 1rem; right: 1rem; opacity: 0.7')
@@ -39,6 +47,7 @@ html(lang='ja')
         block footer
           footer
             .border-top.mt-3.pt-3.pb-3
-              .container-fluid &copy; Lorem Ipsum Co. Ltd.
+              .container-fluid
+                a(href='https://www.loremipsum.co.jp/' target='_blank') &copy; Lorem Ipsum Co. Ltd.
         block script
           script(src='/static/js/bootstrap.bundle.min.js')

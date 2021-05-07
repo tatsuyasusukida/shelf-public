@@ -9,7 +9,7 @@ class Main {
     try {
       const page = await browser.newPage()
 
-      await page.setViewport({width: 800, height: 1000, deviceScaleFactor: 2})
+      await page.setViewport({width: 800, height: 1050, deviceScaleFactor: 2})
 
       const items = this.getItems()
 
@@ -30,6 +30,7 @@ class Main {
   getItems () {
     return [
       {pathname: '/list/', file: 'list'},
+      {pathname: '/layout/', file: 'layout'},
       {pathname: '/product/add/', file: 'product-add'},
       {pathname: '/product/1234/edit/', file: 'product-edit'},
       {pathname: '/product/1234/delete/', file: 'product-delete'},

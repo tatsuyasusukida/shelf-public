@@ -24,13 +24,12 @@ block main
         +product-item
 
       nav.mt-3(aria-label='メイン')
-        ul.list-unstyled
-          li
-            a(href='../question/?category=product') 商品についてお問い合わせ
-          li
-            a(href='../question/?category=discount') 法人割引についてお問い合わせ
+        .d-grid
+          a.btn.btn-outline-primary(href='../product/add/') 商品を追加する
 
-        .row.gx-3
+        hr
+
+        .row.gx-3.mt-3
           .col
             .d-grid
               a.btn.btn-outline-primary(href='../estimate/') 見積書を発行する
@@ -38,5 +37,8 @@ block main
             .d-grid
               a.btn.btn-primary(href='../order/') 注文
 
-        .d-flex.justify-content-end.mt-3
-          a.btn.btn-outline-secondary(href='../product/add/') 別の商品を追加する
+        ul.list-unstyled.mt-3.text-end
+          li
+            a(href='../question/?category=product') 保存リストの商品についてお問い合わせ
+          li
+            a(href='../question/?category=discount') 法人割引についてお問い合わせ
