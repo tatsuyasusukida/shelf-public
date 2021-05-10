@@ -1,6 +1,6 @@
 mixin product-form(submitText)
   .d-md-flex.gap-3
-    .flex-grow-1.mt-3(v-if='image')
+    .flex-grow-1.mt-3(style='flex-basis: calc(100% - 400px - 1rem)' v-if='image')
       .row.justify-content-center.gx-3.gy-3.sticky-md-top
         .col-6(v-if='image.front')
           figure
@@ -134,7 +134,7 @@ mixin product-form(submitText)
 
           .form-group.mb-3
             label.form-label(for='amount') 本棚の台数
-            input.form-control(type='number' name='amount' id='amount' min='1' step='1' v-model='form.amount' v-bind:class="{'is-invalid': validation.amount.ok === false}" v-bind:aria-invalid='validation.amount.ok === false && true' v-bind:aria-describedby="'amountDescription' + (validation.amount.ok === false ? ' amountValidation' : '')")
+            input.form-control(type='number' name='amount' id='amount' min='1' step='1' v-model='form.amount' v-bind:class="{'is-invalid': validation.amount.ok === false}" v-bind:aria-invalid='validation.amount.ok === false && true' v-bind:aria-describedby="'amountDescription' + (validation.amount.ok === false ? ' amountValidation' : '')" v-on:keydown='onChangeDebounced')
             p.form-text.mb-0(id='amountDescription')
               | 本棚の台数に応じて割引が適用されます。
             p.invalid-feedback.mb-0(id='amountValidation' v-on:keydown='onChangeDebounced')
