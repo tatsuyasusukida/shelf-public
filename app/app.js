@@ -1,16 +1,21 @@
 const path = require('path')
+const helmet = require('helmet')
 const morgan = require('morgan')
+const nocache = require('nocache')
 const winston = require('winston')
 const express = require('express')
-const helmet = require('helmet')
 const proxyMiddleware = require('proxy-middleware')
 const {Initializer} = require('./lib/initializer')
 const {Validator} = require('./lib/validator')
+const {ImageMaker} = require('./lib/image-maker')
+const {PriceCalculator} = require('./lib/price-calculator')
 
 class App {
   constructor () {
     this.initializer = new Initializer()
     this.validator = new Validator()
+    this.imageMaker = new ImageMaker()
+    this.priceCalculator = new PriceCalculator()
 
     this.router = express()
 
@@ -36,6 +41,8 @@ class App {
       this.router.use('/static/', express.static(path.join(__dirname, 'static')))
     }
 
+    this.router.use('/render/', proxyMiddleware(process.env.URL_RENDER))
+
     this.router.get('/', (req, res) => res.redirect('./product/add/'))
     this.router.get('/layout/', (req, res) => res.render('layout'))
     this.router.get('/list/', (req, res) => res.render('list'))
@@ -55,7 +62,10 @@ class App {
     this.router.get('/question/review/', (req, res) => res.render('question-review'))
     this.router.get('/question/finish/', (req, res) => res.render('question-finish'))
 
+    this.router.use('/api/v1/', nocache())
+    this.router.use('/api/v1/', express.json())
     this.router.get('/api/v1/product/add/initialize', this.onRequestApiV1ProductAddInitialize.bind(this))
+    this.router.post('/api/v1/product/add/change', this.onRequestApiV1ProductAddChange.bind(this))
 
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
@@ -75,6 +85,14 @@ class App {
     next()
   }
 
+  onRequestProductImageFront (req, res, next) {
+
+  }
+
+  onRequestProductImageFront (req, res, next) {
+    
+  }
+
   async onRequestApiV1ProductAddInitialize (req, res, next) {
     try {
       const form = this.initializer.makeFormProduct()
@@ -82,6 +100,23 @@ class App {
       const options = this.initializer.makeOptionsProduct()
 
       res.send({form, validation, options})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductAddChange (req, res, next) {
+    try {
+      const validation = await this.validator.validateProduct(req)
+      let image = null
+      let price = null
+
+      if (validation.ok) {
+        image = this.imageMaker.makeImage(req)
+        price = this.priceCalculator.calculatePrice(req)
+      }
+
+      res.send({validation, image, price})
     } catch (err) {
       next(err)
     }

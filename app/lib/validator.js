@@ -50,6 +50,94 @@ class Validator {
       },
     }
   }
+
+  async validateProduct (req) {
+    const validation = this.makeValidationProduct()
+    const {form} = req.body
+
+    validation.width = this.validateFieldRange(form.width, 15, 90)
+    validation.height = this.validateFieldRange(form.height, 49, 200)
+    validation.depth = this.validateFieldRange(form.depth, 19, 46)
+    validation.row = this.validateFieldNotEmpty(form.row)
+    validation.thickness = this.validateFieldNotEmpty(form.thickness)
+    validation.fix = this.validateFieldNotEmpty(form.fix)
+    validation.back = this.validateFieldNotEmpty(form.back)
+    validation.color = this.validateFieldNotEmpty(form.color)
+    validation.amount = this.validateFieldInteger(form.amount)
+    validation.ok = this.isValidRequest(validation)
+
+    return validation
+  }
+
+  validateFieldNotEmpty (value) {
+    const validation = {
+      ok: null,
+      isNotEmpty: null,
+    }
+
+    validation.isNotEmpty = value !== ''
+    validation.ok = this.isValidField(validation)
+
+    return validation
+  }
+
+  validateFieldInteger (value) {
+    const validation = {
+      ok: null,
+      isNotEmpty: null,
+      isInteger: null,
+    }
+
+    validation.isNotEmpty = value !== ''
+
+    if (validation.isNotEmpty) {
+      validation.isInteger = /^[0-9]+$/.test(value)
+    }
+
+    validation.ok = this.isValidField(validation)
+
+    return validation
+  }
+
+  validateFieldRange (value, min, max) {
+    const validation = {
+      ok: null,
+      isNotEmpty: null,
+      isInteger: null,
+      isGreater: null,
+      isLess: null,
+    }
+
+    validation.isNotEmpty = value !== ''
+
+    if (validation.isNotEmpty) {
+      validation.isInteger = /^[0-9]+$/.test(value)
+    }
+
+    if (validation.isInteger) {
+      validation.isGreater = parseInt(value, 10) >= min
+    }
+
+    if (validation.isGreater) {
+      validation.isLess = parseInt(value, 10) <= max
+    }
+
+    validation.ok = this.isValidField(validation)
+
+    return validation
+  }
+
+  isValidRequest (validation) {
+    return Object.keys(validation).every(key => {
+      return key === 'ok' || validation[key].ok === true
+    })
+  }
+
+  isValidField (validation) {
+    return Object.keys(validation).every(key => {
+      return key === 'ok' || validation[key] === true
+    })
+  }
 }
 
 module.exports.Validator = Validator
