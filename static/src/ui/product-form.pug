@@ -1,0 +1,154 @@
+mixin product-form(submitText)
+  .d-md-flex.gap-3
+    .flex-grow-1.mt-3
+      .row.justify-content-center.gx-3.gy-3.sticky-md-top
+        .col-6
+          figure
+            .skeleton-image
+            figcaption.text-center.mt-2 正面画像
+        .col-6
+          figure
+            .skeleton-image
+            figcaption.text-center.mt-2 側面画像
+
+    .flex-grow-0.mt-3(style='flex-basis: 400px; padding-bottom: 80px')
+      form(role='form')
+        fieldset
+          legend 外寸
+          .form-group.mb-3
+            label.form-label(for='width') W(幅)[cm]
+            input.form-control(type='number' name='width' id='width' min='15' max='90' step='1' v-model='form.width' v-bind:class="{'is-invalid': validation.width.ok === false}" v-bind:aria-invalid='validation.width.ok === false && true' v-bind:aria-describedby="'widthDescription' + (validation.width.ok === false ? ' widthValidation' : '')")
+            p.form-text.mb-0(id='widthDescription')
+              | 最小サイズ：15cm、最大サイズ：90cm
+            p.invalid-feedback.mb-0(id='widthValidation')
+              template(v-if='validation.width.isNotEmpty === false')
+                | W(幅)をご入力ください。
+              template(v-if='validation.width.isInteger === false')
+                | W(幅)を数値でご入力ください。
+              template(v-if='validation.width.isGreater === false')
+                | W(幅)が最小サイズを下回っています。
+              template(v-if='validation.width.isLess === false')
+                | W(幅)が最大サイズを上回っています。
+          .form-group.mb-3
+            label.form-label(for='height') H(高さ)[cm]
+            input.form-control(type='number' name='height' id='height' min='49' max='200' step='1' v-model='form.height' v-bind:class="{'is-invalid': validation.height.ok === false}" v-bind:aria-invalid='validation.height.ok === false && true' v-bind:aria-describedby="'heightDescription' + (validation.height.ok === false ? ' heightValidation' : '')")
+            p.form-text.mb-0(id='heightDescription')
+              | 最小サイズ：49cm、最大サイズ：200cm
+            p.invalid-feedback.mb-0(id='heightValidation')
+              template(v-if='validation.height.isNotEmpty === false')
+                | H(高さ)をご入力ください。
+              template(v-if='validation.height.isInteger === false')
+                | H(高さ)を数値でご入力ください。
+              template(v-if='validation.height.isGreater === false')
+                | H(高さ)が最小サイズを下回っています。
+              template(v-if='validation.height.isLess === false')
+                | H(高さ)が最大サイズを上回っています。
+          .form-group.mb-3
+            label.form-label(for='depth') D(奥行)[cm]
+            input.form-control(type='number' name='depth' id='depth' min='19' max='46' step='1' v-model='form.depth' v-bind:class="{'is-invalid': validation.depth.ok === false}" v-bind:aria-invalid='validation.depth.ok === false' v-bind:aria-describedby="'depthDescription' + (validation.depth.ok === false ? ' depthValidation' : '')")
+            p.form-text.mb-0(id='depthDescription')
+              | 最小サイズ：19cm、最大サイズ：46cm
+            p.invalid-feedback.mb-0(id='depthValidation')
+              template(v-if='validation.depth.isNotEmpty === false')
+                | D(奥行)をご入力ください。
+              template(v-if='validation.depth.isInteger === false')
+                | D(奥行)を数値でご入力ください。
+              template(v-if='validation.depth.isGreater === false')
+                | D(奥行)が最小サイズを下回っています。
+              template(v-if='validation.depth.isLess === false')
+                | D(奥行)が最大サイズを上回っています。
+
+        hr.mt-4.mb-4
+
+        fieldset
+          legend 棚板の枚数
+          .form-group
+            .d-flex.gap-1
+              template(v-for='(option, i) of options.row')
+                input.btn-check(type='radio' name='row' v-bind:id="'row' + i" v-bind:value='option.value' autocomplete='off' v-model='form.row' v-bind:class="{'is-invalid': validation.row.ok === false}" v-bind:aria-invalid='validation.row.ok === false' v-bind:aria-describedby="validation.row.ok === false ? 'rowValidation' : null")
+                label.btn.btn-outline-secondary.flex-grow-1(v-bind:for="'row' + i") {{option.text}}
+            p.invalid-feedback.mb-0(id='rowValidation' v-bind:class="{'d-block': validation.row.ok === false}")
+              template(v-if='validation.row.isNotEmpty === false')
+                | 棚板の枚数をお選びください。
+
+        hr.mt-4.mb-4
+
+        fieldset
+          legend 棚板の厚さ
+          .form-group
+            .d-flex.gap-1
+              template(v-for='(option, i) of options.thickness')
+                input.btn-check(type='radio' name='thickness' v-bind:id="'thickness' + i" v-bind:value='option.value' autocomplete='off' v-model='form.thickness' v-bind:class="{'is-invalid': validation.thickness.ok === false}" v-bind:aria-invalid='validation.thickness.ok === false' v-bind:aria-describedby="validation.thickness.ok === false ? 'thicknessValidation' : null")
+                label.btn.btn-outline-secondary.flex-grow-1(v-bind:for="'thickness' + i") {{option.text}}
+            p.invalid-feedback.mb-0(id='thicknessValidation' v-bind:class="{'d-block': validation.thickness.ok === false}")
+              template(v-if='validation.thickness.isNotEmpty === false')
+                | 棚板の厚さをお選びください。
+
+        hr.mt-4.mb-4
+
+        fieldset
+          legend 棚板の取り付け
+          .form-group
+            .d-flex.gap-1
+              template(v-for='(option, i) of options.fix')
+                input.btn-check(type='radio' name='fix' v-bind:id="'fix' + i" v-bind:value='option.value' autocomplete='off' v-model='form.fix' v-bind:class="{'is-invalid': validation.fix.ok === false}" v-bind:aria-invalid='validation.fix.ok === false' v-bind:aria-describedby="validation.fix.ok === false ? 'fixValidation' : null")
+                label.btn.btn-outline-secondary.flex-grow-1(v-bind:for="'fix' + i") {{option.text}}
+            p.invalid-feedback.mb-0(id='fixValidation' v-bind:class="{'d-block': validation.fix.ok === false}")
+              template(v-if='validation.fix.isNotEmpty === false')
+                | 棚板の取り付けをお選びください。
+
+        hr.mt-4.mb-4
+
+        fieldset
+          legend 背面の有無
+          .form-group
+            .d-flex.gap-1
+              template(v-for='(option, i) of options.back')
+                input.btn-check(type='radio' name='back' v-bind:id="'back' + i" v-bind:value='option.value' autocomplete='off' v-model='form.back' v-bind:class="{'is-invalid': validation.back.ok === false}" v-bind:aria-invalid='validation.back.ok === false' v-bind:aria-describedby="validation.back.ok === false ? 'backValidation' : null")
+                label.btn.btn-outline-secondary.flex-grow-1(v-bind:for="'back' + i") {{option.text}}
+            p.invalid-feedback.mb-0(id='backValidation' v-bind:class="{'d-block': validation.back.ok === false}")
+              template(v-if='validation.back.isNotEmpty === false')
+                | 背面の有無をお選びください。
+
+        hr.mt-4.mb-4
+
+        fieldset
+          legend カラー
+          .form-group
+            .color
+              template(v-for='(option, i) of options.color')
+                .color-item
+                  input(type='radio' name='color' v-bind:id="'color' + i" v-bind:value='option.value' autocomplete='off' v-model='form.color' v-bind:class="{'is-invalid': validation.color.ok === false}" v-bind:aria-invalid='validation.color.ok === false' v-bind:aria-describedby="validation.color.ok === false ? 'colorValidation' : null")
+                  label(v-bind:for="'color' + i")
+                    span.is-outer
+                      span.is-inner(v-bind:style="{'background': option.background}")
+                    | {{option.text}}
+            p.invalid-feedback.mb-0(id='colorValidation' v-bind:class="{'d-block': validation.color.ok === false}")
+              template(v-if='validation.color.isNotEmpty === false')
+                | カラーをお選びください。
+
+        hr.mt-4.mb-4
+
+        fieldset
+          legend 数量
+
+          .form-group.mb-3
+            label.form-label(for='amount') 本棚の台数
+            input.form-control(type='number' name='amount' id='amount' min='15' max='90' step='1' v-model='form.amount' v-bind:class="{'is-invalid': validation.amount.ok === false}" v-bind:aria-invalid='validation.amount.ok === false && true' v-bind:aria-describedby="(validation.amount.ok === false ? ' amountValidation' : null)")
+            p.invalid-feedback.mb-0(id='amountValidation')
+              template(v-if='validation.amount.isNotEmpty === false')
+                | 本棚の台数をご入力ください。
+              template(v-if='validation.amount.isInteger === false')
+                | 本棚の台数を数値でご入力ください。
+
+        .position-fixed.w-100(style='left: 0; bottom: 0; z-index: 1021')
+          .border-top.bg-white.px-3
+            .d-flex.align-items-center(style='height: 60px')
+              dl.mb-0.ms-auto
+                dt.d-inline-block.me-1.fw-normal 単価
+                dd.d-inline-block.mb-0.me-3 &yen;20,000(税込)
+
+                dt.d-inline-block.me-1.fw-normal 金額
+                dd.d-inline-block.mb-0.me-3 &yen;<span style="font-size: 1.5rem;">20,000</span>(税込)
+
+              a.btn.btn-primary(href=attributes.submit.href) #{attributes.submit.text}

@@ -3,9 +3,15 @@ const morgan = require('morgan')
 const winston = require('winston')
 const express = require('express')
 const helmet = require('helmet')
+const proxyMiddleware = require('proxy-middleware')
+const {Initializer} = require('./lib/initializer')
+const {Validator} = require('./lib/validator')
 
 class App {
   constructor () {
+    this.initializer = new Initializer()
+    this.validator = new Validator()
+
     this.router = express()
 
     this.router.set('strict routing', true)
@@ -23,7 +29,12 @@ class App {
     }))
 
     this.router.use(this.onRequestInitialize.bind(this))
-    this.router.use('/static/', express.static(path.join(__dirname, 'static')))
+
+    if (process.env.PROXY === '1') {
+      this.router.use('/static/', proxyMiddleware('http://127.0.0.1:8080/'))
+    } else {
+      this.router.use('/static/', express.static(path.join(__dirname, 'static')))
+    }
 
     this.router.get('/', (req, res) => res.redirect('./product/add/'))
     this.router.get('/layout/', (req, res) => res.render('layout'))
@@ -43,6 +54,9 @@ class App {
     this.router.get('/question/', (req, res) => res.render('question-index'))
     this.router.get('/question/review/', (req, res) => res.render('question-review'))
     this.router.get('/question/finish/', (req, res) => res.render('question-finish'))
+
+    this.router.get('/api/v1/product/add/initialize', this.onRequestApiV1ProductAddInitialize.bind(this))
+
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }
@@ -59,6 +73,18 @@ class App {
     res.locals.env = process.env
 
     next()
+  }
+
+  async onRequestApiV1ProductAddInitialize (req, res, next) {
+    try {
+      const form = this.initializer.makeFormProduct()
+      const validation = this.validator.makeValidationProduct()
+      const options = this.initializer.makeOptionsProduct()
+
+      res.send({form, validation, options})
+    } catch (err) {
+      next(err)
+    }
   }
 
   onNotFound (req, res) {
