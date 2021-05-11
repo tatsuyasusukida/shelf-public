@@ -4,11 +4,14 @@ const morgan = require('morgan')
 const nocache = require('nocache')
 const winston = require('winston')
 const express = require('express')
+const session = require('express-session')
 const proxyMiddleware = require('proxy-middleware')
+const MySQLStore = require('express-mysql-session')(session)
 const {Initializer} = require('./lib/initializer')
 const {Validator} = require('./lib/validator')
 const {ImageMaker} = require('./lib/image-maker')
 const {PriceCalculator} = require('./lib/price-calculator')
+const model = require('./model')
 
 class App {
   constructor () {
@@ -16,6 +19,28 @@ class App {
     this.validator = new Validator()
     this.imageMaker = new ImageMaker()
     this.priceCalculator = new PriceCalculator()
+
+    this.session = session({
+      cookie: {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.SESSION_SECURE === '1',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        sameSite: 'lax',
+      },
+      name: 'shelf_session',
+      resave: false,
+      rolling: true,
+      saveUninitialized: false,
+      secret: process.env.SESSION_SECRET,
+      store: new MySQLStore({
+        host: process.env.STORE_HOST,
+        port: process.env.STORE_PORT,
+        user: process.env.STORE_USER,
+        password: process.env.STORE_PASSWORD,
+        database: process.env.STORE_DATABASE,
+      }),
+    })
 
     this.router = express()
 
@@ -66,6 +91,8 @@ class App {
     this.router.use('/api/v1/', express.json())
     this.router.get('/api/v1/product/add/initialize', this.onRequestApiV1ProductAddInitialize.bind(this))
     this.router.post('/api/v1/product/add/change', this.onRequestApiV1ProductAddChange.bind(this))
+    this.router.post('/api/v1/product/add/validate', this.onRequestApiV1ProductAddValidate.bind(this))
+    this.router.post('/api/v1/product/add/submit', this.session, this.onRequestApiV1ProductAddSubmit.bind(this))
 
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
@@ -83,14 +110,6 @@ class App {
     res.locals.env = process.env
 
     next()
-  }
-
-  onRequestProductImageFront (req, res, next) {
-
-  }
-
-  onRequestProductImageFront (req, res, next) {
-    
   }
 
   async onRequestApiV1ProductAddInitialize (req, res, next) {
@@ -117,6 +136,62 @@ class App {
       }
 
       res.send({validation, image, price})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductAddValidate (req, res, next) {
+    try {
+      const validation = await this.validator.validateProduct(req)
+
+      res.send({validation})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductAddSubmit (req, res, next) {
+    try {
+      const validation = await this.validator.validateProduct(req)
+
+      if (!validation.ok) {
+        res.status(400).end()
+        return
+      }
+
+      await model.sequelize.transaction(async (transaction) => {
+        let cartId = req.session.cartId
+
+        if (!req.session.cartId) {
+          const cart = await model.cart.create({}, {transaction})
+          cartId = cart.id
+        }
+
+        const product = await model.product.create({
+          width: req.body.form.width,
+          height: req.body.form.height,
+          depth: req.body.form.depth,
+          row: req.body.form.row,
+          thickness: req.body.form.thickness,
+          fix: req.body.form.fix,
+          back: req.body.form.back,
+          color: req.body.form.color,
+          amount: req.body.form.amount,
+        }, {transaction})
+
+        await model.cartProduct.create({
+          date: new Date(),
+          cartId,
+          productId: product.id,
+        }, {transaction})
+
+        const ok = true
+        const redirect = '../../list/'
+
+        req.session.cartId = cartId
+        res.send({ok, redirect})
+      })
     } catch (err) {
       next(err)
     }

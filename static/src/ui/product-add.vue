@@ -33,12 +33,12 @@
         this.validation = body.validation
         this.options = body.options
 
-        await this.onChange()
+        await this.onChangeForm()
 
-        this.onChangeDebounced = debounce(this.onChange, 500)
+        this.onChangeFormDebounced = debounce(this.onChangeForm, 500)
       },
 
-      async onChange () {
+      async onChangeForm () {
         const url = this.api + 'change'
         const options = {
           method: 'POST',
@@ -54,6 +54,34 @@
         this.validation = body.validation
         this.image = body.image
         this.price = body.price
+      },
+
+      async onClickButtonSubmit () {
+        const url = this.api + 'validate'
+        const options = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({form: this.form}),
+        }
+
+        const response = await fetch(url, options)
+        const body = await response.json()
+
+        this.validation = body.validation
+
+        if (this.validation.ok) {
+          const url = this.api + 'submit'
+          const response = await fetch(url, options)
+          const body = await response.json()
+
+          if (body.ok) {
+            window.location.assign(body.redirect)
+          }
+        } else {
+          window.scrollTo(0, 0)
+        }
       },
     },
   }
