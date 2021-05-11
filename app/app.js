@@ -11,7 +11,9 @@ const {Initializer} = require('./lib/initializer')
 const {Validator} = require('./lib/validator')
 const {ImageMaker} = require('./lib/image-maker')
 const {PriceCalculator} = require('./lib/price-calculator')
+const {Converter} = require('./lib/converter')
 const model = require('./model')
+const {Op} = require('sequelize')
 
 class App {
   constructor () {
@@ -19,6 +21,7 @@ class App {
     this.validator = new Validator()
     this.imageMaker = new ImageMaker()
     this.priceCalculator = new PriceCalculator()
+    this.converter = new Converter()
 
     this.session = session({
       cookie: {
@@ -72,6 +75,7 @@ class App {
     this.router.get('/layout/', (req, res) => res.render('layout'))
     this.router.get('/list/', (req, res) => res.render('list'))
     this.router.get('/product/add/', (req, res) => res.render('product-add'))
+    this.router.use('/product/:productId([0-9]+)/', this.session, this.onRequestFindProduct.bind(this))
     this.router.get('/product/:productId([0-9]+)/edit/', (req, res) => res.render('product-edit'))
     this.router.get('/product/:productId([0-9]+)/delete/', (req, res) => res.render('product-delete'))
     this.router.get('/product/delete/finish/', (req, res) => res.render('product-delete-finish'))
@@ -89,11 +93,14 @@ class App {
 
     this.router.use('/api/v1/', nocache())
     this.router.use('/api/v1/', express.json())
+    this.router.get('/api/v1/list/initialize', this.session, this.onRequestApiV1ListInitialize.bind(this))
     this.router.get('/api/v1/product/add/initialize', this.onRequestApiV1ProductAddInitialize.bind(this))
     this.router.post('/api/v1/product/add/change', this.onRequestApiV1ProductAddChange.bind(this))
     this.router.post('/api/v1/product/add/validate', this.onRequestApiV1ProductAddValidate.bind(this))
     this.router.post('/api/v1/product/add/submit', this.session, this.onRequestApiV1ProductAddSubmit.bind(this))
-
+    this.router.use('/api/v1/product/:productId([0-9]+)/', this.session, this.onRequestFindProduct.bind(this))
+    this.router.get('/api/v1/product/:productId([0-9]+)/delete/initialize', this.onRequestApiV1ProductDeleteInitialize.bind(this))
+    this.router.delete('/api/v1/product/:productId([0-9]+)/delete/submit', this.onRequestApiV1ProductDeleteSubmit.bind(this))
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }
@@ -107,9 +114,75 @@ class App {
   }
 
   onRequestInitialize (req, res, next) {
+    req.locals = {}
     res.locals.env = process.env
 
     next()
+  }
+
+  async onRequestFindProduct (req, res, next) {
+    try {
+      const product = await model.product.findOne({
+        where: {
+          id: {[Op.eq]: req.params.productId},
+        },
+      })
+
+      if (!product) {
+        res.status(404).end()
+        return
+      }
+
+      if (!req.session.cartId) {
+        res.status(403).end()
+        return
+      }
+
+      const cartProduct = model.cartProduct.findOne({
+        where: {
+          cartId: {[Op.eq]: req.session.cartId},
+          productId: {[Op.eq]: product.id},
+        },
+      })
+
+      if (!cartProduct) {
+        res.status(403).end()
+        return
+      }
+
+      req.locals.product = product
+
+      next()
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ListInitialize (req, res, next) {
+    try {
+      let products = []
+
+      if (req.session.cartId) {
+        const cartProducts = await model.cartProduct.findAll({
+          where: {
+            cartId: {[Op.eq]: req.session.cartId},
+          },
+          order: [['date', 'asc']],
+          include: [model.product],
+        })
+
+        products = cartProducts.map((cartProduct, i) => {
+          const {product} = cartProduct
+          const number = i + 1
+
+          return this.converter.convertProduct(product, number)
+        })
+      }
+
+      res.send({products})
+    } catch (err) {
+      next(err)
+    }
   }
 
   async onRequestApiV1ProductAddInitialize (req, res, next) {
@@ -131,8 +204,8 @@ class App {
       let price = null
 
       if (validation.ok) {
-        image = this.imageMaker.makeImage(req)
-        price = this.priceCalculator.calculatePrice(req)
+        image = this.imageMaker.makeImage(req.body.form)
+        price = this.priceCalculator.calculatePrice(req.body.form)
       }
 
       res.send({validation, image, price})
@@ -190,6 +263,31 @@ class App {
         const redirect = '../../list/'
 
         req.session.cartId = cartId
+        res.send({ok, redirect})
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductDeleteInitialize (req, res, next) {
+    try {
+      const product = this.converter.convertProduct(req.locals.product)
+
+      res.send({product})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductDeleteSubmit (req, res, next) {
+    try {
+      await model.sequelize.transaction(async (transaction) => {
+        await req.locals.product.destroy({transaction})
+
+        const ok = true
+        const redirect = '../../delete/finish/'
+
         res.send({ok, redirect})
       })
     } catch (err) {

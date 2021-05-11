@@ -1,20 +1,13 @@
-const {Converter} = require('./converter')
-
 class PriceCalculator {
-  constructor () {
-    this.converter = new Converter()
-  }
-
-  calculatePrice (req) {
-    const {form} = req.body
+  calculatePrice (product) {
     const plates = []
     const input = {
-      width: parseInt(form.width, 10) * 10,
-      height: parseInt(form.height, 10) * 10,
-      depth: parseInt(form.depth, 10) * 10,
-      row: parseInt(form.row, 10),
-      thickness: parseInt(form.thickness, 10),
-      amount: parseInt(form.amount, 10),
+      width: parseInt(product.width, 10) * 10,
+      height: parseInt(product.height, 10) * 10,
+      depth: parseInt(product.depth, 10) * 10,
+      row: parseInt(product.row, 10),
+      thickness: parseInt(product.thickness, 10),
+      amount: parseInt(product.amount, 10),
     }
 
     const thicknessFrame = 30
@@ -34,7 +27,7 @@ class PriceCalculator {
 
     const plateInner = {
       width: input.width - thicknessFrame * 2,
-      height: input.depth - (form.back === 'あり' ? thicknessBack : 0),
+      height: input.depth - (product.back === 'あり' ? thicknessBack : 0),
       thickness: input.thickness,
     }
 
@@ -53,7 +46,7 @@ class PriceCalculator {
       plates.push(plateInner)
     }
 
-    if (form.back === 'あり') {
+    if (product.back === 'あり') {
       plates.push(plateBack)
     }
 
@@ -103,9 +96,9 @@ class PriceCalculator {
 
     return {
       unit,
-      unitText: this.converter.formatNumber(unit),
+      unitText: new Intl.NumberFormat().format(unit),
       total,
-      totalText: this.converter.formatNumber(total),
+      totalText: new Intl.NumberFormat().format(total),
     }
   }
 

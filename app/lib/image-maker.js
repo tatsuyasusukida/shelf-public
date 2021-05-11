@@ -2,22 +2,26 @@ const querystring = require('querystring')
 const {Initializer} = require('./initializer')
 
 class ImageMaker {
-  constructor () {
-    this.initializer = new Initializer()
-  }
-
-  makeImage (req) {
-    const options = this.initializer.makeOptionsProductColor()
+  makeImage (product) {
+    const initializer = new Initializer()
+    const options = initializer.makeOptionsProductColor()
     const map = options.reduce((memo, option) => {
       memo[option.value] = option.background
       return memo
     }, {})
 
-    const background = map[req.body.form.color]
-    const search = '?' + [
-      querystring.stringify(req.body.form),
-      querystring.stringify({background}),
-    ].join('&')
+    const search = '?' + querystring.stringify({
+      width: product.width,
+      height: product.height,
+      depth: product.depth,
+      row: product.row,
+      thickness: product.thickness,
+      fix: product.fix,
+      back: product.back,
+      color: product.color,
+      amount: product.amount,
+      background: map[product.color]
+    })
 
     return {
       front: '/render/front.svg' + search,
