@@ -99,6 +99,10 @@ class App {
     this.router.post('/api/v1/product/add/validate', this.onRequestApiV1ProductAddValidate.bind(this))
     this.router.post('/api/v1/product/add/submit', this.session, this.onRequestApiV1ProductAddSubmit.bind(this))
     this.router.use('/api/v1/product/:productId([0-9]+)/', this.session, this.onRequestFindProduct.bind(this))
+    this.router.get('/api/v1/product/:productId([0-9]+)/edit/initialize', this.onRequestApiV1ProductEditInitialize.bind(this))
+    this.router.put('/api/v1/product/:productId([0-9]+)/edit/change', this.onRequestApiV1ProductEditChange.bind(this))
+    this.router.put('/api/v1/product/:productId([0-9]+)/edit/validate', this.onRequestApiV1ProductEditValidate.bind(this))
+    this.router.put('/api/v1/product/:productId([0-9]+)/edit/submit', this.session, this.onRequestApiV1ProductEditSubmit.bind(this))
     this.router.get('/api/v1/product/:productId([0-9]+)/delete/initialize', this.onRequestApiV1ProductDeleteInitialize.bind(this))
     this.router.delete('/api/v1/product/:productId([0-9]+)/delete/submit', this.onRequestApiV1ProductDeleteSubmit.bind(this))
     this.router.use(this.onNotFound.bind(this))
@@ -263,6 +267,87 @@ class App {
         const redirect = '../../list/'
 
         req.session.cartId = cartId
+        res.send({ok, redirect})
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductEditInitialize (req, res, next) {
+    try {
+      const form = this.initializer.makeFormProduct()
+      const validation = this.validator.makeValidationProduct()
+      const options = this.initializer.makeOptionsProduct()
+
+      form.width = '' + req.locals.product.width
+      form.height = '' + req.locals.product.height
+      form.depth = '' + req.locals.product.depth
+      form.row = '' + req.locals.product.row
+      form.thickness = '' + req.locals.product.thickness
+      form.fix = '' + req.locals.product.fix
+      form.back = '' + req.locals.product.back
+      form.color = '' + req.locals.product.color
+      form.amount = '' + req.locals.product.amount
+
+      res.send({form, validation, options})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductEditChange (req, res, next) {
+    try {
+      const validation = await this.validator.validateProduct(req)
+      let image = null
+      let price = null
+
+      if (validation.ok) {
+        image = this.imageMaker.makeImage(req.body.form)
+        price = this.priceCalculator.calculatePrice(req.body.form)
+      }
+
+      res.send({validation, image, price})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductEditValidate (req, res, next) {
+    try {
+      const validation = await this.validator.validateProduct(req)
+
+      res.send({validation})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1ProductEditSubmit (req, res, next) {
+    try {
+      const validation = await this.validator.validateProduct(req)
+
+      if (!validation.ok) {
+        res.status(400).end()
+        return
+      }
+
+      await model.sequelize.transaction(async (transaction) => {
+        req.locals.product.width = req.body.form.width
+        req.locals.product.height = req.body.form.height
+        req.locals.product.depth = req.body.form.depth
+        req.locals.product.row = req.body.form.row
+        req.locals.product.thickness = req.body.form.thickness
+        req.locals.product.fix = req.body.form.fix
+        req.locals.product.back = req.body.form.back
+        req.locals.product.color = req.body.form.color
+        req.locals.product.amount = req.body.form.amount
+
+        await req.locals.product.save({transaction})
+
+        const ok = true
+        const redirect = '../../../list/'
+
         res.send({ok, redirect})
       })
     } catch (err) {

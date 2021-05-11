@@ -2,8 +2,8 @@
   include ./product-form
 
   .container-fluid
-    h1.mt-3 商品の追加
-    +product-form(submit='保存リストに追加する')
+    h1.mt-3 商品の変更
+    +product-form(submit='保存リストを更新する')
 </template>
 
 <script>
@@ -14,7 +14,7 @@
 
     data () {
       return {
-        method: 'POST',
+        method: 'PUT',
       }
     },
   }

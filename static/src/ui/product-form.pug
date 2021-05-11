@@ -217,4 +217,4 @@ mixin product-form(submitText)
                   template(v-if='!(price && price.totalText)')
                     span(aria-hidden='true') -
 
-              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonSubmit') #{attributes.submit.text}
+              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonSubmit') #{attributes.submit}

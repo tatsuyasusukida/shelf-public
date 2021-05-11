@@ -1,5 +1,6 @@
 import List from './ui/list.vue'
 import ProductAdd from './ui/product-add.vue'
+import ProductEdit from './ui/product-edit.vue'
 import ProductDelete from './ui/product-delete.vue'
 
 class Main {
@@ -19,6 +20,8 @@ class Main {
       return List
     } else if (pathname === '/product/add/') {
       return ProductAdd
+    } else if (new RegExp('^/product/[0-9]+/edit/$').test(pathname)) {
+      return ProductEdit
     } else if (new RegExp('^/product/[0-9]+/delete/$').test(pathname)) {
       return ProductDelete
     } else {
