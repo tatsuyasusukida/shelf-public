@@ -4,16 +4,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon -r dotenv/config script/serve.js"
+    "start": "nodemon -r dotenv/config script/serve.js",
+    "fixture": "node -r dotenv/config script/fixture.js"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "helmet": "^4.6.0",
     "morgan": "^1.10.0",
+    "mysql2": "^2.2.5",
     "nocache": "^2.1.0",
     "proxy-middleware": "^0.15.0",
     "pug": "^3.0.2",
+    "sequelize": "^6.6.2",
     "winston": "^3.3.3"
   }
 }

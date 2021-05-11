@@ -7,12 +7,12 @@ class Main {
   async run () {
     const loggerMaker = new LoggerMaker()
 
-    winston.loggers.add('error', loggerMaker.makeLogger('error', 'json', 'error.log'))
-    winston.loggers.add('warn', loggerMaker.makeLogger('warn', 'json', 'warn.log'))
-    winston.loggers.add('info', loggerMaker.makeLogger('info', 'json', 'info.log'))
-    winston.loggers.add('debug', loggerMaker.makeLogger('debug', 'json', 'debug.log'))
-    winston.loggers.add('access', loggerMaker.makeLogger('info', 'raw', 'access.log'))
-    winston.loggers.add('query', loggerMaker.makeLogger('info', 'json', 'query.log'))
+    winston.loggers.add('error', loggerMaker.makeLogger('error', 'json', 'serve-error.log'))
+    winston.loggers.add('warn', loggerMaker.makeLogger('warn', 'json', 'serve-warn.log'))
+    winston.loggers.add('info', loggerMaker.makeLogger('info', 'json', 'serve-info.log'))
+    winston.loggers.add('debug', loggerMaker.makeLogger('debug', 'json', 'serve-debug.log'))
+    winston.loggers.add('access', loggerMaker.makeLogger('info', 'raw', 'serve-access.log'))
+    winston.loggers.add('query', loggerMaker.makeLogger('info', 'json', 'serve-query.log'))
 
     const server = http.createServer()
     const app = new App()
