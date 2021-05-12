@@ -4,6 +4,7 @@ import ProductEdit from './ui/product-edit.vue'
 import ProductDelete from './ui/product-delete.vue'
 import Estimate from './ui/estimate.vue'
 import EstimatePrint from './ui/estimate-print.vue'
+import Question from './ui/question.vue'
 
 class Main {
   async run () {
@@ -30,6 +31,8 @@ class Main {
       return Estimate
     } else if (new RegExp('^/estimate/print/$').test(pathname)) {
       return EstimatePrint
+    } else if (new RegExp('^/question/$').test(pathname)) {
+      return Question
     } else {
       return null
     }

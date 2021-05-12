@@ -88,7 +88,7 @@ class App {
     this.router.get('/order/review/', (req, res) => res.render('order-review'))
     this.router.get('/order/payment/', (req, res) => res.render('order-payment'))
     this.router.get('/order/finish/', (req, res) => res.render('order-finish'))
-    this.router.get('/question/', (req, res) => res.render('question-index'))
+    this.router.get('/question/', (req, res) => res.render('question'))
     this.router.get('/question/review/', (req, res) => res.render('question-review'))
     this.router.get('/question/finish/', (req, res) => res.render('question-finish'))
 
@@ -112,6 +112,11 @@ class App {
     this.router.post('/api/v1/estimate/submit', this.session, this.onRequestApiV1EstimateSubmit.bind(this))
     this.router.get('/api/v1/estimate/print/initialize', this.onRequestApiV1EstimatePrintInitialize.bind(this))
 
+    this.router.get('/api/v1/question/initialize', this.onRequestApiV1QuestionInitialize.bind(this))
+    this.router.post('/api/v1/question/validate', this.onRequestApiV1QuestionValidate.bind(this))
+    this.router.get('/api/v1/question/review', this.session, this.onRequestApiV1QuestionReview.bind(this))
+    this.router.post('/api/v1/question/submit', this.session, this.onRequestApiV1QuestionSubmit.bind(this))
+
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }
@@ -127,6 +132,7 @@ class App {
   onRequestInitialize (req, res, next) {
     req.locals = {}
     res.locals.env = process.env
+    res.locals.req = req
     res.locals.url = new URL(req.originalUrl, process.env.BASE_URL)
 
     next()
@@ -582,8 +588,6 @@ class App {
         totalText: this.converter.formatNumber(total),
       }
 
-      console.log(summary)
-
       res.send({
         estimate: this.converter.convertEstimate(estimate),
         products,
@@ -592,6 +596,190 @@ class App {
     } catch (err) {
       next(err)
     }
+  }
+
+  async onRequestApiV1QuestionInitialize (req, res, next) {
+    try {
+      const form = this.initializer.makeFormQuestion()
+      const validation = this.validator.makeValidationQuestion()
+      const options = this.initializer.makeOptionsQuestion()
+
+      if (req.query.category === 'product') {
+        form.category = '商品について'
+      } else if (req.query.category === 'discount') {
+        form.category = '法人割引について'
+      }
+
+      res.send({form, validation, options})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1QuestionValidate (req, res, next) {
+    try {
+      const validation = await this.validator.validateQuestion(req)
+
+      res.send({validation})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1QuestionReview (req, res, next) {
+    try {
+      const cartProducts = await model.cartProduct.findAll({
+        where: {
+          cartId: {[Op.eq]: req.session.cartId},
+        },
+        order: [['date', 'asc']],
+        include: [model.product],
+      })
+
+      const products = cartProducts.map(({product}, i) => {
+        return this.converter.convertProduct(product, i + 1)
+      })
+
+      const subtotal = products.reduce((memo, product) => {
+        return memo + product.price.total
+      }, 0)
+
+      const tax = Math.floor(subtotal * process.env.TAX_PERCENT / 100)
+      const total = subtotal + tax
+      const summary = {
+        subtotal,
+        subtotalText: this.converter.formatNumber(subtotal),
+        tax,
+        taxText: this.converter.formatNumber(tax),
+        total,
+        totalText: this.converter.formatNumber(total),
+      }
+
+      res.send({products, summary})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1QuestionSubmit (req, res, next) {
+    try {
+      const validation = await this.validator.validateQuestion(req)
+
+      if (!validation.ok) {
+        res.status(400).end()
+        return
+      }
+
+      await model.sequelize.transaction(async (transaction) => {
+        const {cartId} = req.session
+
+        if (!cartId) {
+          res.status(400).end()
+          return
+        }
+
+        const cartProducts = await model.cartProduct.findAll({
+          where: {
+            cartId: {[Op.eq]: cartId},
+          },
+          order: [['date', 'asc']],
+          include: [model.product],
+          transaction,
+        })
+
+        if (cartProducts.length === 0) {
+          res.status(400).end()
+          return
+        }
+
+        if (process.env.DEMO_IS_ENABLED === '1') {
+          req.body.form.name = 'ここに氏名が入ります'
+          req.body.form.kana = 'ここにフリガナが入ります'
+          req.body.form.company = '株式会社ロレムイプサム'
+          req.body.form.zip = '9402039'
+          req.body.form.address = '新潟県長岡市関原南4丁目3934番地'
+          req.body.form.tel = '0258945233'
+          req.body.form.email = 'shelf@loremipsum.co.jp'
+          req.body.form.content = [
+            'ここにテキストが入ります。',
+            'ここにテキストが入ります。',
+            'ここにテキストが入ります。',
+          ].join('\n')
+        }
+
+        const price = cartProducts.reduce((memo, {product}) => {
+          const {price} = this.converter.convertProduct(product)
+          return memo + price.total
+        }, 0)
+
+        const question = await model.question.create({
+          date: new Date(),
+          number: await this.generateQuestionNumber(transaction),
+          name: req.body.form.name,
+          kana: req.body.form.kana,
+          company: req.body.form.company,
+          zip: req.body.form.zip,
+          address: req.body.form.address,
+          tel: req.body.form.tel,
+          email: req.body.form.email,
+          content: req.body.form.content,
+          price: price,
+        }, {transaction})
+
+        const products = []
+
+        for (const cartProduct of cartProducts) {
+          const product = await model.product.create({
+            width: cartProduct.product.width,
+            height: cartProduct.product.height,
+            depth: cartProduct.product.depth,
+            row: cartProduct.product.row,
+            thickness: cartProduct.product.thickness,
+            fix: cartProduct.product.fix,
+            back: cartProduct.product.back,
+            color: cartProduct.product.color,
+            amount: cartProduct.product.amount,
+          }, {transaction})
+
+          await model.questionProduct.create({
+            sort: cartProducts.indexOf(cartProduct) + 1,
+            questionId: question.id,
+            productId: product.id,
+          }, {transaction})
+        }
+
+        const ok = true
+        const redirect = './finish/?' + querystring.stringify({
+          number: question.number,
+        })
+
+        res.send({ok, redirect})
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async generateQuestionNumber (transaction) {
+    for (let i = 0; i < 10; i += 1) {
+      const number = [
+        ('' + crypto.randomInt(10000)).padStart(4),
+        ('' + crypto.randomInt(10000)).padStart(4),
+        ('' + crypto.randomInt(10000)).padStart(4),
+      ].join('-')
+
+      const question = await model.question.findOne({
+        where: {
+          number: {[Op.eq]: number},
+        },
+      })
+
+      if (!question) {
+        return number
+      }
+    }
+
+    throw new Error('Question number generation failed')
   }
 
   onNotFound (req, res) {

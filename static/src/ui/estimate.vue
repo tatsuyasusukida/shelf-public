@@ -105,6 +105,7 @@
 
         if (this.validation.ok) {
           this.currentView = 'review'
+          window.scrollTo(0, 0)
         } else {
           window.scrollTo(0, 0)
         }
@@ -112,6 +113,7 @@
 
       async onClickButtonPrevious () {
         this.currentView = 'index'
+        window.scrollTo(0, 0)
       },
 
       async onClickButtonSubmit () {

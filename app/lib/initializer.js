@@ -1,4 +1,31 @@
 class Initializer {
+  makeFormQuestion () {
+    return {
+      category: '',
+      name: 'ここに氏名が入ります',
+      kana: 'ここにフリガナが入ります',
+      company: '株式会社ロレムイプサム',
+      zip: '9402039',
+      address: '新潟県長岡市関原南4丁目3934番地',
+      tel: '0258945233',
+      email: 'shelf@loremipsum.co.jp',
+      content: [
+        'ここにテキストが入ります。',
+        'ここにテキストが入ります。',
+        'ここにテキストが入ります。',
+      ].join('\n'),
+    }
+  }
+
+  makeOptionsQuestion () {
+    return {
+      category: [
+        {value: '商品について', text: '商品について'},
+        {value: '法人割引について', text: '法人割引について'},
+      ],
+    }
+  }
+
   makeFormEstimate () {
     return {
       name: '株式会社ロレムイプサム',
