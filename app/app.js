@@ -77,7 +77,7 @@ class App {
     this.router.get('/layout/', (req, res) => res.render('layout'))
     this.router.get('/list/', (req, res) => res.render('list'))
     this.router.get('/product/add/', (req, res) => res.render('product-add'))
-    this.router.use('/product/:productId([0-9]+)/', this.session, this.onRequestFindProduct.bind(this))
+    this.router.use('/product/:productId([0-9]+)/', this.session, this.onRequestFindCart.bind(this), this.onRequestFindProduct.bind(this))
     this.router.get('/product/:productId([0-9]+)/edit/', (req, res) => res.render('product-edit'))
     this.router.get('/product/:productId([0-9]+)/delete/', (req, res) => res.render('product-delete'))
     this.router.get('/product/delete/finish/', (req, res) => res.render('product-delete-finish'))
@@ -99,7 +99,7 @@ class App {
     this.router.post('/api/v1/product/add/change', this.onRequestApiV1ProductAddChange.bind(this))
     this.router.post('/api/v1/product/add/validate', this.onRequestApiV1ProductAddValidate.bind(this))
     this.router.post('/api/v1/product/add/submit', this.session, this.onRequestApiV1ProductAddSubmit.bind(this))
-    this.router.use('/api/v1/product/:productId([0-9]+)/', this.session, this.onRequestFindProduct.bind(this))
+    this.router.use('/api/v1/product/:productId([0-9]+)/', this.session, this.onRequestFindCart.bind(this), this.onRequestFindProduct.bind(this))
     this.router.get('/api/v1/product/:productId([0-9]+)/edit/initialize', this.onRequestApiV1ProductEditInitialize.bind(this))
     this.router.put('/api/v1/product/:productId([0-9]+)/edit/change', this.onRequestApiV1ProductEditChange.bind(this))
     this.router.put('/api/v1/product/:productId([0-9]+)/edit/validate', this.onRequestApiV1ProductEditValidate.bind(this))
@@ -109,12 +109,12 @@ class App {
 
     this.router.get('/api/v1/estimate/initialize', this.onRequestApiV1EstimateInitialize.bind(this))
     this.router.post('/api/v1/estimate/validate', this.onRequestApiV1EstimateValidate.bind(this))
-    this.router.post('/api/v1/estimate/submit', this.session, this.onRequestApiV1EstimateSubmit.bind(this))
+    this.router.post('/api/v1/estimate/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimateSubmit.bind(this))
     this.router.get('/api/v1/estimate/print/initialize', this.onRequestApiV1EstimatePrintInitialize.bind(this))
 
     this.router.get('/api/v1/question/initialize', this.onRequestApiV1QuestionInitialize.bind(this))
     this.router.post('/api/v1/question/validate', this.onRequestApiV1QuestionValidate.bind(this))
-    this.router.get('/api/v1/question/review', this.session, this.onRequestApiV1QuestionReview.bind(this))
+    this.router.get('/api/v1/question/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1QuestionReview.bind(this))
     this.router.post('/api/v1/question/submit', this.session, this.onRequestApiV1QuestionSubmit.bind(this))
 
     this.router.use(this.onNotFound.bind(this))
@@ -138,6 +138,30 @@ class App {
     next()
   }
 
+  async onRequestFindCart (req, res, next) {
+    try {
+      if (!req.session || !req.session.cartId) {
+        res.status(400).end()
+        return
+      }
+
+      const cart = await model.cart.findOne({
+        where: {
+          id: {[Op.eq]: req.session.cartId},
+        },
+      })
+
+      if (!cart) {
+        res.status(400).end()
+        return
+      }
+
+      next()
+    } catch (err) {
+      next(err)
+    }
+  }
+
   async onRequestFindProduct (req, res, next) {
     try {
       const product = await model.product.findOne({
@@ -148,11 +172,6 @@ class App {
 
       if (!product) {
         res.status(404).end()
-        return
-      }
-
-      if (!req.session.cartId) {
-        res.status(403).end()
         return
       }
 
@@ -271,17 +290,8 @@ class App {
           cartId = cart.id
         }
 
-        const product = await model.product.create({
-          width: req.body.form.width,
-          height: req.body.form.height,
-          depth: req.body.form.depth,
-          row: req.body.form.row,
-          thickness: req.body.form.thickness,
-          fix: req.body.form.fix,
-          back: req.body.form.back,
-          color: req.body.form.color,
-          amount: req.body.form.amount,
-        }, {transaction})
+        const args = [req.body.form, transaction]
+        const product = await this.createProduct(...args)
 
         await model.cartProduct.create({
           date: new Date(),
@@ -438,16 +448,9 @@ class App {
       }
 
       await model.sequelize.transaction(async (transaction) => {
-        const {cartId} = req.session
-
-        if (!cartId) {
-          res.status(400).end()
-          return
-        }
-
         const cartProducts = await model.cartProduct.findAll({
           where: {
-            cartId: {[Op.eq]: cartId},
+            cartId: {[Op.eq]: req.session.cartId},
           },
           order: [['date', 'asc']],
           include: [model.product],
@@ -477,17 +480,8 @@ class App {
         const products = []
 
         for (const cartProduct of cartProducts) {
-          const product = await model.product.create({
-            width: cartProduct.product.width,
-            height: cartProduct.product.height,
-            depth: cartProduct.product.depth,
-            row: cartProduct.product.row,
-            thickness: cartProduct.product.thickness,
-            fix: cartProduct.product.fix,
-            back: cartProduct.product.back,
-            color: cartProduct.product.color,
-            amount: cartProduct.product.amount,
-          }, {transaction})
+          const args = [cartProduct.product, transaction]
+          const product = await this.createProduct(...args)
 
           await model.estimateProduct.create({
             sort: cartProducts.indexOf(cartProduct) + 1,
@@ -671,16 +665,9 @@ class App {
       }
 
       await model.sequelize.transaction(async (transaction) => {
-        const {cartId} = req.session
-
-        if (!cartId) {
-          res.status(400).end()
-          return
-        }
-
         const cartProducts = await model.cartProduct.findAll({
           where: {
-            cartId: {[Op.eq]: cartId},
+            cartId: {[Op.eq]: req.session.cartId},
           },
           order: [['date', 'asc']],
           include: [model.product],
@@ -729,17 +716,8 @@ class App {
         const products = []
 
         for (const cartProduct of cartProducts) {
-          const product = await model.product.create({
-            width: cartProduct.product.width,
-            height: cartProduct.product.height,
-            depth: cartProduct.product.depth,
-            row: cartProduct.product.row,
-            thickness: cartProduct.product.thickness,
-            fix: cartProduct.product.fix,
-            back: cartProduct.product.back,
-            color: cartProduct.product.color,
-            amount: cartProduct.product.amount,
-          }, {transaction})
+          const args = [cartProduct.product, transaction]
+          const product = await this.createProduct(...args)
 
           await model.questionProduct.create({
             sort: cartProducts.indexOf(cartProduct) + 1,
@@ -758,6 +736,20 @@ class App {
     } catch (err) {
       next(err)
     }
+  }
+
+  async createProduct (product, transaction) {
+    return await model.product.create({
+      width: product.width,
+      height: product.height,
+      depth: product.depth,
+      row: product.row,
+      thickness: product.thickness,
+      fix: product.fix,
+      back: product.back,
+      color: product.color,
+      amount: product.amount,
+    }, {transaction})
   }
 
   async generateQuestionNumber (transaction) {

@@ -3,7 +3,7 @@
     nav(aria-label='メニュー')
       .d-print-none
         .mt-3.mb-3.text-end
-          button.px-3(type='button') 印刷
+          button.px-3(type='button' v-on:click.prevent='onClickButtonPrint') 印刷
     .paper.is-first
       .estimate
         .estimate-date {{estimate.dateText}}
@@ -135,6 +135,10 @@
         this.estimate = body.estimate
         this.products = body.products
         this.summary = body.summary
+      },
+
+      async onClickButtonPrint () {
+        window.print()
       },
     },
   }
