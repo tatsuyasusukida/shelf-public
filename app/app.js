@@ -1,4 +1,6 @@
 const path = require('path')
+const crypto = require('crypto')
+const querystring = require('querystring')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const nocache = require('nocache')
@@ -79,8 +81,7 @@ class App {
     this.router.get('/product/:productId([0-9]+)/edit/', (req, res) => res.render('product-edit'))
     this.router.get('/product/:productId([0-9]+)/delete/', (req, res) => res.render('product-delete'))
     this.router.get('/product/delete/finish/', (req, res) => res.render('product-delete-finish'))
-    this.router.get('/estimate/', (req, res) => res.render('estimate-index'))
-    this.router.get('/estimate/review/', (req, res) => res.render('estimate-review'))
+    this.router.get('/estimate/', (req, res) => res.render('estimate'))
     this.router.get('/estimate/finish/', (req, res) => res.render('estimate-finish'))
     this.router.get('/estimate/print/', (req, res) => res.render('estimate-print'))
     this.router.get('/order/', (req, res) => res.render('order-index'))
@@ -105,6 +106,12 @@ class App {
     this.router.put('/api/v1/product/:productId([0-9]+)/edit/submit', this.session, this.onRequestApiV1ProductEditSubmit.bind(this))
     this.router.get('/api/v1/product/:productId([0-9]+)/delete/initialize', this.onRequestApiV1ProductDeleteInitialize.bind(this))
     this.router.delete('/api/v1/product/:productId([0-9]+)/delete/submit', this.onRequestApiV1ProductDeleteSubmit.bind(this))
+
+    this.router.get('/api/v1/estimate/initialize', this.onRequestApiV1EstimateInitialize.bind(this))
+    this.router.post('/api/v1/estimate/validate', this.onRequestApiV1EstimateValidate.bind(this))
+    this.router.post('/api/v1/estimate/submit', this.session, this.onRequestApiV1EstimateSubmit.bind(this))
+    this.router.get('/api/v1/estimate/print/initialize', this.onRequestApiV1EstimatePrintInitialize.bind(this))
+
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
   }
@@ -120,6 +127,7 @@ class App {
   onRequestInitialize (req, res, next) {
     req.locals = {}
     res.locals.env = process.env
+    res.locals.url = new URL(req.originalUrl, process.env.BASE_URL)
 
     next()
   }
@@ -142,7 +150,7 @@ class App {
         return
       }
 
-      const cartProduct = model.cartProduct.findOne({
+      const cartProduct = await model.cartProduct.findOne({
         where: {
           cartId: {[Op.eq]: req.session.cartId},
           productId: {[Op.eq]: product.id},
@@ -240,7 +248,19 @@ class App {
       await model.sequelize.transaction(async (transaction) => {
         let cartId = req.session.cartId
 
-        if (!req.session.cartId) {
+        if (!cartId) {
+          const cart = await model.cart.create({}, {transaction})
+          cartId = cart.id
+        }
+
+        const cart = await model.cart.findOne({
+          where: {
+            id: {[Op.eq]: cartId},
+          },
+          transaction,
+        })
+
+        if (!cart) {
           const cart = await model.cart.create({}, {transaction})
           cartId = cart.id
         }
@@ -374,6 +394,200 @@ class App {
         const redirect = '../../delete/finish/'
 
         res.send({ok, redirect})
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1EstimateInitialize (req, res, next) {
+    try {
+      const form = this.initializer.makeFormEstimate()
+      const validation = this.validator.makeValidationEstimate()
+      const options = this.initializer.makeOptionsEstimate()
+
+      res.send({form, validation, options})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1EstimateValidate (req, res, next) {
+    try {
+      const validation = await this.validator.validateEstimate(req)
+
+      res.send({validation})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1EstimateSubmit (req, res, next) {
+    try {
+      const validation = await this.validator.validateEstimate(req)
+
+      if (!validation.ok) {
+        res.status(400).end()
+        return
+      }
+
+      await model.sequelize.transaction(async (transaction) => {
+        const {cartId} = req.session
+
+        if (!cartId) {
+          res.status(400).end()
+          return
+        }
+
+        const cartProducts = await model.cartProduct.findAll({
+          where: {
+            cartId: {[Op.eq]: cartId},
+          },
+          order: [['date', 'asc']],
+          include: [model.product],
+          transaction,
+        })
+
+        if (cartProducts.length === 0) {
+          res.status(400).end()
+          return
+        }
+
+        if (process.env.DEMO_IS_ENABLED === '1') {
+          req.body.form.name = '株式会社ロレムイプサム'
+          req.body.form.email = 'shelf@loremipsum.co.jp' 
+        }
+
+        const estimate = await model.estimate.create({
+          secret: await this.generateEstimateSecret(),
+          date: new Date(),
+          number: await this.generateEstimateNumber(transaction),
+          name: req.body.form.name,
+          title: req.body.form.title,
+          subscribe: req.body.form.subscribe,
+          email: req.body.form.email,
+        }, {transaction})
+
+        const products = []
+
+        for (const cartProduct of cartProducts) {
+          const product = await model.product.create({
+            width: cartProduct.product.width,
+            height: cartProduct.product.height,
+            depth: cartProduct.product.depth,
+            row: cartProduct.product.row,
+            thickness: cartProduct.product.thickness,
+            fix: cartProduct.product.fix,
+            back: cartProduct.product.back,
+            color: cartProduct.product.color,
+            amount: cartProduct.product.amount,
+          }, {transaction})
+
+          await model.estimateProduct.create({
+            sort: cartProducts.indexOf(cartProduct) + 1,
+            estimateId: estimate.id,
+            productId: product.id,
+          }, {transaction})
+        }
+
+        const ok = true
+        const redirect = './finish/?' + querystring.stringify({
+          id: estimate.id,
+          secret: estimate.secret,
+        })
+
+        res.send({ok, redirect})
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async generateEstimateNumber (transaction) {
+    const minute = 60 * 1000
+    const day = 24 * 60 * minute
+    const offset = process.env.TIMEZONE_OFFSET * minute
+    const start = new Date(Math.floor(Date.now() / day) * day + offset)
+    const end = new Date(start.getTime() + 1 * day)
+
+    const count = await model.estimate.count({
+      where: {
+        date: {
+          [Op.gte]: start,
+          [Op.lt]: end,
+        },
+      },
+      transaction,
+    })
+
+    const today = new Date(Date.now() - offset)
+
+    return [
+      ('' + today.getUTCFullYear()).padStart(4, '0'),
+      ('' + (today.getUTCMonth() + 1)).padStart(2, '0'),
+      ('' + today.getUTCDate()).padStart(2, '0'),
+      '-',
+      ('' + (count + 1)).padStart(3, '0'),
+    ].join('')
+  }
+
+  async generateEstimateSecret () {
+    const buffer = crypto.randomBytes(32)
+    const text = buffer.toString('base64')
+
+    return text
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '')
+  }
+
+  async onRequestApiV1EstimatePrintInitialize (req, res, next) {
+    try {
+      const estimate = await model.estimate.findOne({
+        where: {
+          id: {[Op.eq]: req.query.id},
+          secret: {[Op.eq]: req.query.secret},
+        },
+      })
+
+      if (!estimate) {
+        res.status(400).end()
+        return
+      }
+
+      const estimateProducts = await model.estimateProduct.findAll({
+        where: {
+          estimateId: {[Op.eq]: estimate.id},
+        },
+        order: [['sort', 'asc']],
+        include: [model.product],
+      })
+
+      const products = estimateProducts.map(({product}, i) => {
+        return this.converter.convertProduct(product, i + 1)
+      })
+
+      const subtotal = products.reduce((memo, product) => {
+        return memo + product.price.total
+      }, 0)
+
+      const tax = Math.floor(subtotal * process.env.TAX_PERCENT / 100)
+      const total = subtotal + tax
+      const summary = {
+        subtotal,
+        subtotalText: this.converter.formatNumber(subtotal),
+        tax,
+        taxText: this.converter.formatNumber(tax),
+        total,
+        totalText: this.converter.formatNumber(total),
+      }
+
+      console.log(summary)
+
+      res.send({
+        estimate: this.converter.convertEstimate(estimate),
+        products,
+        summary,
       })
     } catch (err) {
       next(err)

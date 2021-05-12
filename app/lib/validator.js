@@ -1,4 +1,39 @@
 class Validator {
+  makeValidationEstimate () {
+    return {
+      ok: null,
+      name: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      title: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      subscribe: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      email: {
+        ok: null,
+        isNotEmpty: null,
+      },
+    }
+  }
+
+  async validateEstimate (req) {
+    const validation = this.makeValidationEstimate()
+    const {form} = req.body
+
+    validation.name = this.validateFieldNotEmpty(form.name)
+    validation.title = this.validateFieldNotEmpty(form.title)
+    validation.subscribe = this.validateFieldNotEmpty(form.subscribe)
+    validation.email = this.validateFieldNotEmpty(form.email)
+    validation.ok = this.isValidRequest(validation)
+
+    return validation
+  }
+
   makeValidationProduct () {
     return {
       ok: null,

@@ -1,4 +1,26 @@
 class Initializer {
+  makeFormEstimate () {
+    return {
+      name: '株式会社ロレムイプサム',
+      title: '御中',
+      subscribe: '受け取る',
+      email: 'shelf@loremipsum.co.jp',
+    }
+  }
+
+  makeOptionsEstimate () {
+    return {
+      title: [
+        {value: '御中', text: '御中'},
+        {value: '様', text: '様'},
+      ],
+      subscribe: [
+        {value: '受け取る', text: '受け取る'},
+        {value: '受け取らない', text: '受け取らない'},
+      ],
+    }
+  }
+
   makeFormProduct () {
     return {
       width: '15',

@@ -1,6 +1,6 @@
 module.exports = function (sequelize, DataTypes) {
   const orderProduct = sequelize.define('orderProduct', {
-    date: {type: DataTypes.DATE, allowNull: false},
+    sort: {type: DataTypes.INTEGER, allowNull: false},
   })
 
   orderProduct.associate = function (model) {

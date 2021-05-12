@@ -16,21 +16,22 @@
       .d-grid
         a.btn.btn-outline-primary(href='../product/add/') 商品を追加する
 
-      hr
+      template(v-if='products.length >= 1')
+        hr
 
-      .row.gx-3.mt-3
-        .col
-          .d-grid
-            a.btn.btn-outline-primary(href='../estimate/') 見積書を発行する
-        .col
-          .d-grid
-            a.btn.btn-primary(href='../order/') 注文
+        .row.gx-3.mt-3
+          .col
+            .d-grid
+              a.btn.btn-outline-primary(href='../estimate/') 見積書を発行する
+          .col
+            .d-grid
+              a.btn.btn-primary(href='../order/') 注文
 
-      ul.list-unstyled.mt-3.text-end
-        li
-          a(href='../question/?category=product') 保存リストの商品についてお問い合わせ
-        li
-          a(href='../question/?category=discount') 法人割引についてお問い合わせ
+        ul.list-unstyled.mt-3.text-end
+          li
+            a(href='../question/?category=product') 保存リストの商品についてお問い合わせ
+          li
+            a(href='../question/?category=discount') 法人割引についてお問い合わせ
 
 </template>
 

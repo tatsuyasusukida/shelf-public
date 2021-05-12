@@ -2,6 +2,8 @@ import List from './ui/list.vue'
 import ProductAdd from './ui/product-add.vue'
 import ProductEdit from './ui/product-edit.vue'
 import ProductDelete from './ui/product-delete.vue'
+import Estimate from './ui/estimate.vue'
+import EstimatePrint from './ui/estimate-print.vue'
 
 class Main {
   async run () {
@@ -9,8 +11,8 @@ class Main {
 
     if (page) {
       const vm = new Vue(page)
-      await vm.initialize()
 
+      await vm.initialize()
       vm.$mount('#main')
     }
   }
@@ -24,6 +26,10 @@ class Main {
       return ProductEdit
     } else if (new RegExp('^/product/[0-9]+/delete/$').test(pathname)) {
       return ProductDelete
+    } else if (new RegExp('^/estimate/$').test(pathname)) {
+      return Estimate
+    } else if (new RegExp('^/estimate/print/$').test(pathname)) {
+      return EstimatePrint
     } else {
       return null
     }

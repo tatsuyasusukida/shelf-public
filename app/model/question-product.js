@@ -1,6 +1,6 @@
 module.exports = function (sequelize, DataTypes) {
   const questionProduct = sequelize.define('questionProduct', {
-    date: {type: DataTypes.DATE, allowNull: false},
+    sort: {type: DataTypes.INTEGER, allowNull: false},
   })
 
   questionProduct.associate = function (model) {
