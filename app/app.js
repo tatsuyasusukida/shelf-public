@@ -110,7 +110,7 @@ class App {
     this.router.get('/api/v1/estimate/initialize', this.onRequestApiV1EstimateInitialize.bind(this))
     this.router.post('/api/v1/estimate/validate', this.onRequestApiV1EstimateValidate.bind(this))
     this.router.post('/api/v1/estimate/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimateSubmit.bind(this))
-    this.router.get('/api/v1/estimate/print/initialize', this.onRequestApiV1EstimatePrintInitialize.bind(this))
+    this.router.get('/api/v1/estimate/print/initialize', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimatePrintInitialize.bind(this))
 
     this.router.get('/api/v1/order/initialize', this.onRequestApiV1OrderInitialize.bind(this))
     this.router.post('/api/v1/order/validate', this.onRequestApiV1OrderValidate.bind(this))
@@ -473,13 +473,17 @@ class App {
         }
 
         const estimate = await model.estimate.create({
-          secret: await this.generateEstimateSecret(),
           date: new Date(),
           number: await this.generateEstimateNumber(transaction),
           name: req.body.form.name,
           title: req.body.form.title,
           subscribe: req.body.form.subscribe,
           email: req.body.form.email,
+        }, {transaction})
+
+        await model.cartEstimate.create({
+          cartId: req.session.cartId,
+          estimateId: estimate.id,
         }, {transaction})
 
         const products = []
@@ -496,10 +500,7 @@ class App {
         }
 
         const ok = true
-        const redirect = './finish/?' + querystring.stringify({
-          id: estimate.id,
-          secret: estimate.secret,
-        })
+        const redirect = './finish/?id=' + estimate.id
 
         res.send({ok, redirect})
       })
@@ -536,27 +537,28 @@ class App {
     ].join('')
   }
 
-  async generateEstimateSecret () {
-    const buffer = crypto.randomBytes(32)
-    const text = buffer.toString('base64')
-
-    return text
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '')
-  }
-
   async onRequestApiV1EstimatePrintInitialize (req, res, next) {
     try {
       const estimate = await model.estimate.findOne({
         where: {
           id: {[Op.eq]: req.query.id},
-          secret: {[Op.eq]: req.query.secret},
         },
       })
 
       if (!estimate) {
-        res.status(400).end()
+        res.status(404).end()
+        return
+      }
+
+      const cartEstimate = await model.cartEstimate.findOne({
+        where: {
+          cartId: {[Op.eq]: req.session.cartId},
+          estimateId: {[Op.eq]: estimate.id},
+        },
+      })
+
+      if (!cartEstimate) {
+        res.status(403).end()
         return
       }
 
