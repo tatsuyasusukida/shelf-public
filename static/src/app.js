@@ -20,9 +20,9 @@ class Main {
   }
 
   getPage (pathname) {
-    if (pathname === '/list/') {
+    if (new RegExp('^/list/$').test(pathname)) {
       return List
-    } else if (pathname === '/product/add/') {
+    } else if (new RegExp('^/product/add/$').test(pathname)) {
       return ProductAdd
     } else if (new RegExp('^/product/[0-9]+/edit/$').test(pathname)) {
       return ProductEdit

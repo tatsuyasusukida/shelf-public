@@ -1,5 +1,5 @@
 <template lang="pug">
-  include ./product-form
+  include ./mixin/product-form
 
   .container-fluid
     h1.mt-3 商品の変更
@@ -7,7 +7,7 @@
 </template>
 
 <script>
-  import ProductForm from './product-form'
+  import ProductForm from './mixin/product-form'
 
   export default {
     mixins: [ProductForm],

@@ -1,5 +1,5 @@
 <template lang="pug">
-  include ./product-item
+  include ./mixin/product-item
 
   .container-fluid
     h1.mt-3 商品の削除
