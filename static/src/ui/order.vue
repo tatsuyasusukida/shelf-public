@@ -2,17 +2,9 @@
   include ./product-item
 
   .container-fluid
-    h1.mt-3 お問い合わせ
+    h1.mt-3 注文
     template(v-if="currentView === 'index'")
       form(role='form')
-        fieldset.mb-3
-          legend.fs-6 お問い合わせの種類
-          .form-check
-            input.form-check-input(type='radio' name='category' id='category0' value='商品について' v-model='form.category')
-            label.form-check-label(for='category0') 商品について
-          .form-check
-            input.form-check-input(type='radio' name='category' id='category1' value='法人割引について' v-model='form.category')
-            label.form-check-label(for='category1') 法人割引について
         .form-group.mb-3
           label.form-label(for='name') お名前
           input.form-control(type='text' name='name' id='name' aria-required='true' aria-describedby='nameHelp' readonly v-model='form.name')
@@ -42,9 +34,20 @@
           input.form-control(type='email' name='email' id='email' aria-required='true' aria-describedby='emailHelp' readonly v-model='form.email')
           p.form-text(id='emailHelp') デモのためメールアドレスを入力できません。
         .form-group.mb-3
-          label.form-label(for='content') お問い合わせの内容
-          textarea.form-control(rows='7' name='content' id='content' aria-required='true' aria-describedby='memoHelp' readonly v-model='form.content')
+          label.form-label(for='memo') 備考
+          textarea.form-control(rows='7' name='memo' id='memo' aria-required='false' aria-describedby='memoHelp' readonly v-model='form.memo')
           p.form-text(id='memoHelp') デモのため備考を入力できません。
+        fieldset.mb-3
+          legend.fs-6 お支払い方法
+          .form-check
+            input.form-check-input(type='radio' name='payment' id='payment0' value='クレジットカード' v-model='form.payment')
+            label.form-check-label(for='payment0') クレジットカード
+          .form-check
+            input.form-check-input(type='radio' name='payment' id='payment1' value='銀行振込' v-model='form.payment')
+            label.form-check-label(for='payment1') 銀行振込
+          .form-check
+            input.form-check-input(type='radio' name='payment' id='payment2' value='代金引換' v-model='form.payment')
+            label.form-check-label(for='payment2') 代金引換
 
         .row.justify-content-end
           .col-6
@@ -64,6 +67,12 @@
         .row.justify-content-end
           .col-sm-6
             dl.row.mb-0
+              dt.col-6 送料
+              dd.col-6 &yen;{{summary.shippingText}}
+
+              dt.col-6(v-if="form.payment === '代金引換'") 代引手数料
+              dd.col-6(v-if="form.payment === '代金引換'") &yen;{{summary.feeText}}
+
               dt.col-6 小計（税抜）
               dd.col-6 &yen;{{summary.subtotalText}}
 
@@ -74,11 +83,8 @@
               dd.col-6.mb-0 &yen;{{summary.totalText}}
 
       section.mt-3
-        h2 お問い合わせについて
-        dl.mb-0
-          dt お問い合わせの種類
-          dd {{form.category}}
-
+        h2 注文について
+        dl
           dt お名前
           dd {{form.name}}
 
@@ -100,17 +106,20 @@
           dt メールアドレス
           dd {{form.email}}
 
-          dt お問い合わせの内容
-          dd.mb-0
+          dt 備考
+          dd
             p.mb-0
-              template(v-for="(line, i) of form.content.split('\\n')")
+              template(v-for="(line, i) of form.memo.split('\\n')")
                 br(v-if='i >= 1')
                 | {{line}}
+
+          dt お支払い方法
+          dd.mb-0 {{form.payment}}
 
         .row.mt-3
           .col-6.order-last
             .d-grid
-              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonSubmit') お問い合わせ
+              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonSubmit') 注文を確定する
           .col-6
             .d-grid
               button.btn.btn-link(type='button' v-on:click.prevent='onClickButtonPrevious')

@@ -35,4 +35,4 @@ block body
               input.form-control(type='number' name='code' id='code' aria-required='true' aria-describedby='codeHelp' readonly value='123')
               p.form-text(id='expirationHelp') デモのためセキュリティコードを入力できません。
             .d-grid
-              a.btn.btn-primary(href='../finish/') このカードで支払う
+              a.btn.btn-primary(href='../finish/' + url.search) このカードで支払う

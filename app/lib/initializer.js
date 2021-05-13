@@ -1,4 +1,32 @@
 class Initializer {
+  makeFormOrder () {
+    return {
+      name: 'ここに氏名が入ります',
+      kana: 'ここにフリガナが入ります',
+      company: '株式会社ロレムイプサム',
+      zip: '9402039',
+      address: '新潟県長岡市関原南4丁目3934番地',
+      tel: '0258945233',
+      email: 'shelf@loremipsum.co.jp',
+      memo: [
+        'ここにテキストが入ります。',
+        'ここにテキストが入ります。',
+        'ここにテキストが入ります。',
+      ].join('\n'),
+      payment: 'クレジットカード',
+    }
+  }
+
+  makeOptionsOrder () {
+    return {
+      payment: [
+        {value: 'クレジットカード', text: 'クレジットカード'},
+        {value: '銀行振込', text: '銀行振込'},
+        {value: '代金引換', text: '代金引換'},
+      ],
+    }
+  }
+
   makeFormQuestion () {
     return {
       category: '',

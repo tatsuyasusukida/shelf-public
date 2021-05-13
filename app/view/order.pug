@@ -1,0 +1,17 @@
+extends ./layout
+
+block title
+  title 注文｜オーダーメイド本棚注文システム（デモ）
+
+block breadcrumb
+  nav.mt-3(aria-label='パンくずリスト')
+    .container-fluid
+      ol.breadcrumb
+        li.breadcrumb-item
+          a(href='../list/') 保存リスト
+        li.breadcrumb-item
+          a(href='./' aria-current='page') 注文
+
+block main
+  main
+    #main

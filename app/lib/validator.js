@@ -1,4 +1,59 @@
 class Validator {
+  makeValidationOrder () {
+    return {
+      ok: null,
+      name: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      kana: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      company: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      zip: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      address: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      tel: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      email: {
+        ok: null,
+        isNotEmpty: null,
+      },
+      payment: {
+        ok: null,
+        isNotEmpty: null,
+      },
+    }
+  }
+
+  async validateOrder (req) {
+    const validation = this.makeValidationOrder()
+    const {form} = req.body
+
+    validation.name = this.validateFieldNotEmpty(form.name)
+    validation.kana = this.validateFieldNotEmpty(form.kana)
+    validation.company = this.validateFieldNotEmpty(form.company)
+    validation.zip = this.validateFieldNotEmpty(form.zip)
+    validation.address = this.validateFieldNotEmpty(form.address)
+    validation.tel = this.validateFieldNotEmpty(form.tel)
+    validation.email = this.validateFieldNotEmpty(form.email)
+    validation.payment = this.validateFieldNotEmpty(form.payment)
+    validation.ok = this.isValidRequest(validation)
+
+    return validation
+  }
+
   makeValidationQuestion () {
     return {
       ok: null,
@@ -58,7 +113,6 @@ class Validator {
 
     return validation
   }
-
 
   makeValidationEstimate () {
     return {

@@ -84,7 +84,7 @@ class App {
     this.router.get('/estimate/', (req, res) => res.render('estimate'))
     this.router.get('/estimate/finish/', (req, res) => res.render('estimate-finish'))
     this.router.get('/estimate/print/', (req, res) => res.render('estimate-print'))
-    this.router.get('/order/', (req, res) => res.render('order-index'))
+    this.router.get('/order/', (req, res) => res.render('order'))
     this.router.get('/order/review/', (req, res) => res.render('order-review'))
     this.router.get('/order/payment/', (req, res) => res.render('order-payment'))
     this.router.get('/order/finish/', (req, res) => res.render('order-finish'))
@@ -112,10 +112,15 @@ class App {
     this.router.post('/api/v1/estimate/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimateSubmit.bind(this))
     this.router.get('/api/v1/estimate/print/initialize', this.onRequestApiV1EstimatePrintInitialize.bind(this))
 
+    this.router.get('/api/v1/order/initialize', this.onRequestApiV1OrderInitialize.bind(this))
+    this.router.post('/api/v1/order/validate', this.onRequestApiV1OrderValidate.bind(this))
+    this.router.post('/api/v1/order/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1OrderReview.bind(this))
+    this.router.post('/api/v1/order/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1OrderSubmit.bind(this))
+
     this.router.get('/api/v1/question/initialize', this.onRequestApiV1QuestionInitialize.bind(this))
     this.router.post('/api/v1/question/validate', this.onRequestApiV1QuestionValidate.bind(this))
-    this.router.get('/api/v1/question/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1QuestionReview.bind(this))
-    this.router.post('/api/v1/question/submit', this.session, this.onRequestApiV1QuestionSubmit.bind(this))
+    this.router.post('/api/v1/question/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1QuestionReview.bind(this))
+    this.router.post('/api/v1/question/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1QuestionSubmit.bind(this))
 
     this.router.use(this.onNotFound.bind(this))
     this.router.use(this.onInternalServerError.bind(this))
@@ -592,6 +597,156 @@ class App {
     }
   }
 
+  async onRequestApiV1OrderInitialize (req, res, next) {
+    try {
+      const form = this.initializer.makeFormOrder()
+      const validation = this.validator.makeValidationOrder()
+      const options = this.initializer.makeOptionsOrder()
+
+      res.send({form, validation, options})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1OrderValidate (req, res, next) {
+    try {
+      const validation = await this.validator.validateOrder(req)
+
+      res.send({validation})
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async onRequestApiV1OrderReview (req, res, next) {
+    try {
+      res.send(await this.makeOrderReview(req))
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  async makeOrderReview (req, transaction) {
+    const cartProducts = await model.cartProduct.findAll({
+      where: {
+        cartId: {[Op.eq]: req.session.cartId},
+      },
+      order: [['date', 'asc']],
+      include: [model.product],
+      transaction,
+    })
+
+    const products = cartProducts.map(({product}, i) => {
+      return this.converter.convertProduct(product, i + 1)
+    })
+
+    const shipping = 0
+    const fee = req.body.form.payment === '代金引換' ? 600 : 0
+    const subtotal = shipping + fee + products.reduce((memo, product) => {
+      return memo + product.price.total
+    }, 0)
+
+    const tax = Math.floor(subtotal * process.env.TAX_PERCENT / 100)
+    const total = subtotal + tax
+    const summary = {
+      shipping,
+      shippingText: this.converter.formatNumber(shipping),
+      fee,
+      feeText: this.converter.formatNumber(fee),
+      subtotal,
+      subtotalText: this.converter.formatNumber(subtotal),
+      tax,
+      taxText: this.converter.formatNumber(tax),
+      total,
+      totalText: this.converter.formatNumber(total),
+    }
+
+    return {products, summary}
+  }
+
+  async onRequestApiV1OrderSubmit (req, res, next) {
+    try {
+      const validation = await this.validator.validateOrder(req)
+
+      if (!validation.ok) {
+        res.status(400).end()
+        return
+      }
+
+      await model.sequelize.transaction(async (transaction) => {
+        const cartProducts = await model.cartProduct.findAll({
+          where: {
+            cartId: {[Op.eq]: req.session.cartId},
+          },
+          order: [['date', 'asc']],
+          include: [model.product],
+          transaction,
+        })
+
+        if (cartProducts.length === 0) {
+          res.status(400).end()
+          return
+        }
+
+        if (process.env.DEMO_IS_ENABLED === '1') {
+          req.body.form.name = 'ここに氏名が入ります'
+          req.body.form.kana = 'ここにフリガナが入ります'
+          req.body.form.company = '株式会社ロレムイプサム'
+          req.body.form.zip = '9402039'
+          req.body.form.address = '新潟県長岡市関原南4丁目3934番地'
+          req.body.form.tel = '0258945233'
+          req.body.form.email = 'shelf@loremipsum.co.jp'
+          req.body.form.content = [
+            'ここにテキストが入ります。',
+            'ここにテキストが入ります。',
+            'ここにテキストが入ります。',
+          ].join('\n')
+        }
+
+        const {summary} = await this.makeOrderReview(req, transaction)
+        const order = await model.order.create({
+          date: new Date(),
+          number: await this.generateOrderNumber(transaction),
+          name: req.body.form.name,
+          kana: req.body.form.kana,
+          company: req.body.form.company,
+          zip: req.body.form.zip,
+          address: req.body.form.address,
+          tel: req.body.form.tel,
+          email: req.body.form.email,
+          memo: req.body.form.memo,
+          payment: req.body.form.payment,
+          price: summary.total,
+        }, {transaction})
+
+        const products = []
+
+        for (const cartProduct of cartProducts) {
+          const args = [cartProduct.product, transaction]
+          const product = await this.createProduct(...args)
+
+          await model.orderProduct.create({
+            sort: cartProducts.indexOf(cartProduct) + 1,
+            orderId: order.id,
+            productId: product.id,
+          }, {transaction})
+        }
+
+        const ok = true
+        const isCreditCard = order.payment === 'クレジットカード'
+        const pathname = isCreditCard ? './payment/' : './finish/'
+        const redirect = pathname + '?' + querystring.stringify({
+          number: order.number,
+        })
+
+        res.send({ok, redirect})
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
+
   async onRequestApiV1QuestionInitialize (req, res, next) {
     try {
       const form = this.initializer.makeFormQuestion()
@@ -772,6 +927,28 @@ class App {
     }
 
     throw new Error('Question number generation failed')
+  }
+
+  async generateOrderNumber (transaction) {
+    for (let i = 0; i < 10; i += 1) {
+      const number = [
+        ('' + crypto.randomInt(10000)).padStart(4),
+        ('' + crypto.randomInt(10000)).padStart(4),
+        ('' + crypto.randomInt(10000)).padStart(4),
+      ].join('-')
+
+      const order = await model.order.findOne({
+        where: {
+          number: {[Op.eq]: number},
+        },
+      })
+
+      if (!order) {
+        return number
+      }
+    }
+
+    throw new Error('Order number generation failed')
   }
 
   onNotFound (req, res) {
