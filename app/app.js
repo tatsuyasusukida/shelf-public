@@ -1,5 +1,4 @@
 const path = require('path')
-const crypto = require('crypto')
 const querystring = require('querystring')
 const helmet = require('helmet')
 const morgan = require('morgan')
@@ -14,17 +13,21 @@ const {Validator} = require('./lib/validator')
 const {ImageMaker} = require('./lib/image-maker')
 const {PriceCalculator} = require('./lib/price-calculator')
 const {Converter} = require('./lib/converter')
+const {Finder} = require('./lib/finder')
+const {CodeGenerator} = require('./lib/code-generator')
+const {ReviewMaker} = require('./lib/review-maker')
 const model = require('./model')
-const {Op} = require('sequelize')
 
 class App {
   constructor () {
-    this.initializer = new Initializer()
+    this.finder = new Finder()
+    this.converter = new Converter()
     this.validator = new Validator()
     this.imageMaker = new ImageMaker()
+    this.initializer = new Initializer()
+    this.reviewMaker = new ReviewMaker()
+    this.codeGenerator = new CodeGenerator()
     this.priceCalculator = new PriceCalculator()
-    this.converter = new Converter()
-
     this.session = session({
       cookie: {
         path: '/',
@@ -48,12 +51,10 @@ class App {
     })
 
     this.router = express()
-
     this.router.set('strict routing', true)
     this.router.set('views', path.join(__dirname, 'view'))
     this.router.set('view engine', 'pug')
     this.router.set('trust proxy', true)
-
     this.router.use(helmet())
     this.router.use(morgan(process.env.LOG_ACCESS, {
       stream: {
@@ -64,14 +65,13 @@ class App {
     }))
 
     this.router.use(this.onRequestInitialize.bind(this))
+    this.router.use('/render/', proxyMiddleware(process.env.URL_RENDER))
 
     if (process.env.PROXY === '1') {
       this.router.use('/static/', proxyMiddleware('http://127.0.0.1:8080/'))
     } else {
       this.router.use('/static/', express.static(path.join(__dirname, 'static')))
     }
-
-    this.router.use('/render/', proxyMiddleware(process.env.URL_RENDER))
 
     this.router.get('/', (req, res) => res.redirect('./product/add/'))
     this.router.get('/layout/', (req, res) => res.render('layout'))
@@ -106,17 +106,14 @@ class App {
     this.router.put('/api/v1/product/:productId([0-9]+)/edit/submit', this.session, this.onRequestApiV1ProductEditSubmit.bind(this))
     this.router.get('/api/v1/product/:productId([0-9]+)/delete/initialize', this.onRequestApiV1ProductDeleteInitialize.bind(this))
     this.router.delete('/api/v1/product/:productId([0-9]+)/delete/submit', this.onRequestApiV1ProductDeleteSubmit.bind(this))
-
     this.router.get('/api/v1/estimate/initialize', this.onRequestApiV1EstimateInitialize.bind(this))
     this.router.post('/api/v1/estimate/validate', this.onRequestApiV1EstimateValidate.bind(this))
     this.router.post('/api/v1/estimate/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimateSubmit.bind(this))
     this.router.get('/api/v1/estimate/print/initialize', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimatePrintInitialize.bind(this))
-
     this.router.get('/api/v1/order/initialize', this.onRequestApiV1OrderInitialize.bind(this))
     this.router.post('/api/v1/order/validate', this.onRequestApiV1OrderValidate.bind(this))
     this.router.post('/api/v1/order/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1OrderReview.bind(this))
     this.router.post('/api/v1/order/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1OrderSubmit.bind(this))
-
     this.router.get('/api/v1/question/initialize', this.onRequestApiV1QuestionInitialize.bind(this))
     this.router.post('/api/v1/question/validate', this.onRequestApiV1QuestionValidate.bind(this))
     this.router.post('/api/v1/question/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1QuestionReview.bind(this))
@@ -150,11 +147,7 @@ class App {
         return
       }
 
-      const cart = await model.cart.findOne({
-        where: {
-          id: {[Op.eq]: req.session.cartId},
-        },
-      })
+      const cart = await this.finder.findCart(req.session.cartId)
 
       if (!cart) {
         res.status(400).end()
@@ -169,23 +162,15 @@ class App {
 
   async onRequestFindProduct (req, res, next) {
     try {
-      const product = await model.product.findOne({
-        where: {
-          id: {[Op.eq]: req.params.productId},
-        },
-      })
+      const product = await this.finder.findProduct(req.params.productId)
 
       if (!product) {
         res.status(404).end()
         return
       }
 
-      const cartProduct = await model.cartProduct.findOne({
-        where: {
-          cartId: {[Op.eq]: req.session.cartId},
-          productId: {[Op.eq]: product.id},
-        },
-      })
+      const args = [req.session.cartId, product.id]
+      const cartProduct = await this.finder.findCartProduct(...args)
 
       if (!cartProduct) {
         res.status(403).end()
@@ -205,19 +190,10 @@ class App {
       let products = []
 
       if (req.session.cartId) {
-        const cartProducts = await model.cartProduct.findAll({
-          where: {
-            cartId: {[Op.eq]: req.session.cartId},
-          },
-          order: [['date', 'asc']],
-          include: [model.product],
-        })
+        const cartProducts = await this.finder.findCartProducts(req.session.cartId)
 
-        products = cartProducts.map((cartProduct, i) => {
-          const {product} = cartProduct
-          const number = i + 1
-
-          return this.converter.convertProduct(product, number)
+        products = cartProducts.map(({product}, i) => {
+          return this.converter.convertProduct(product, i + 1)
         })
       }
 
@@ -276,25 +252,7 @@ class App {
       }
 
       await model.sequelize.transaction(async (transaction) => {
-        let cartId = req.session.cartId
-
-        if (!cartId) {
-          const cart = await model.cart.create({}, {transaction})
-          cartId = cart.id
-        }
-
-        const cart = await model.cart.findOne({
-          where: {
-            id: {[Op.eq]: cartId},
-          },
-          transaction,
-        })
-
-        if (!cart) {
-          const cart = await model.cart.create({}, {transaction})
-          cartId = cart.id
-        }
-
+        const cartId = await this.findOrCreateCartId(req, transaction)
         const args = [req.body.form, transaction]
         const product = await this.createProduct(...args)
 
@@ -313,6 +271,20 @@ class App {
     } catch (err) {
       next(err)
     }
+  }
+
+  async findOrCreateCartId (req, transaction) {
+    if (req.session.cartId) {
+      const args = [req.session.cartId, transaction]
+      const cart = await this.finder.findCart(...args)
+
+      if (cart) {
+        return cart.id
+      }
+    }
+
+    const cart = await model.cart.create({}, {transaction})
+    return cart.id
   }
 
   async onRequestApiV1ProductEditInitialize (req, res, next) {
@@ -453,14 +425,8 @@ class App {
       }
 
       await model.sequelize.transaction(async (transaction) => {
-        const cartProducts = await model.cartProduct.findAll({
-          where: {
-            cartId: {[Op.eq]: req.session.cartId},
-          },
-          order: [['date', 'asc']],
-          include: [model.product],
-          transaction,
-        })
+        const args = [req.session.cartId, transaction]
+        const cartProducts = await this.finder.findCartProducts(...args)
 
         if (cartProducts.length === 0) {
           res.status(400).end()
@@ -474,7 +440,7 @@ class App {
 
         const estimate = await model.estimate.create({
           date: new Date(),
-          number: await this.generateEstimateNumber(transaction),
+          number: await this.codeGenerator.generateEstimateNumber(transaction),
           name: req.body.form.name,
           title: req.body.form.title,
           subscribe: req.body.form.subscribe,
@@ -500,7 +466,7 @@ class App {
         }
 
         const ok = true
-        const redirect = './finish/?id=' + estimate.id
+        const redirect = './finish/?estimateId=' + estimate.id
 
         res.send({ok, redirect})
       })
@@ -509,67 +475,24 @@ class App {
     }
   }
 
-  async generateEstimateNumber (transaction) {
-    const minute = 60 * 1000
-    const day = 24 * 60 * minute
-    const offset = process.env.TIMEZONE_OFFSET * minute
-    const start = new Date(Math.floor(Date.now() / day) * day + offset)
-    const end = new Date(start.getTime() + 1 * day)
-
-    const count = await model.estimate.count({
-      where: {
-        date: {
-          [Op.gte]: start,
-          [Op.lt]: end,
-        },
-      },
-      transaction,
-    })
-
-    const today = new Date(Date.now() - offset)
-
-    return [
-      ('' + today.getUTCFullYear()).padStart(4, '0'),
-      ('' + (today.getUTCMonth() + 1)).padStart(2, '0'),
-      ('' + today.getUTCDate()).padStart(2, '0'),
-      '-',
-      ('' + (count + 1)).padStart(3, '0'),
-    ].join('')
-  }
-
   async onRequestApiV1EstimatePrintInitialize (req, res, next) {
     try {
-      const estimate = await model.estimate.findOne({
-        where: {
-          id: {[Op.eq]: req.query.id},
-        },
-      })
+      const estimate = await this.finder.findEstimate(req.query.estimateId)
 
       if (!estimate) {
         res.status(404).end()
         return
       }
 
-      const cartEstimate = await model.cartEstimate.findOne({
-        where: {
-          cartId: {[Op.eq]: req.session.cartId},
-          estimateId: {[Op.eq]: estimate.id},
-        },
-      })
+      const args = [req.session.cartId, estimate.id]
+      const cartEstimate = await this.finder.findCartEstimate(...args)
 
       if (!cartEstimate) {
         res.status(403).end()
         return
       }
 
-      const estimateProducts = await model.estimateProduct.findAll({
-        where: {
-          estimateId: {[Op.eq]: estimate.id},
-        },
-        order: [['sort', 'asc']],
-        include: [model.product],
-      })
-
+      const estimateProducts = await this.finder.findEstimateProducts(estimate.id)
       const products = estimateProducts.map(({product}, i) => {
         return this.converter.convertProduct(product, i + 1)
       })
@@ -623,48 +546,10 @@ class App {
 
   async onRequestApiV1OrderReview (req, res, next) {
     try {
-      res.send(await this.makeOrderReview(req))
+      res.send(await this.reviewMaker.makeReviewOrder(req))
     } catch (err) {
       next(err)
     }
-  }
-
-  async makeOrderReview (req, transaction) {
-    const cartProducts = await model.cartProduct.findAll({
-      where: {
-        cartId: {[Op.eq]: req.session.cartId},
-      },
-      order: [['date', 'asc']],
-      include: [model.product],
-      transaction,
-    })
-
-    const products = cartProducts.map(({product}, i) => {
-      return this.converter.convertProduct(product, i + 1)
-    })
-
-    const shipping = 0
-    const fee = req.body.form.payment === '代金引換' ? 600 : 0
-    const subtotal = shipping + fee + products.reduce((memo, product) => {
-      return memo + product.price.total
-    }, 0)
-
-    const tax = Math.floor(subtotal * process.env.TAX_PERCENT / 100)
-    const total = subtotal + tax
-    const summary = {
-      shipping,
-      shippingText: this.converter.formatNumber(shipping),
-      fee,
-      feeText: this.converter.formatNumber(fee),
-      subtotal,
-      subtotalText: this.converter.formatNumber(subtotal),
-      tax,
-      taxText: this.converter.formatNumber(tax),
-      total,
-      totalText: this.converter.formatNumber(total),
-    }
-
-    return {products, summary}
   }
 
   async onRequestApiV1OrderSubmit (req, res, next) {
@@ -677,14 +562,8 @@ class App {
       }
 
       await model.sequelize.transaction(async (transaction) => {
-        const cartProducts = await model.cartProduct.findAll({
-          where: {
-            cartId: {[Op.eq]: req.session.cartId},
-          },
-          order: [['date', 'asc']],
-          include: [model.product],
-          transaction,
-        })
+        const args = [req.session.cartId, transaction]
+        const cartProducts = await this.finder.findCartProducts(...args)
 
         if (cartProducts.length === 0) {
           res.status(400).end()
@@ -706,10 +585,10 @@ class App {
           ].join('\n')
         }
 
-        const {summary} = await this.makeOrderReview(req, transaction)
+        const {summary} = await this.reviewMaker.makeReviewOrder(req, transaction)
         const order = await model.order.create({
           date: new Date(),
-          number: await this.generateOrderNumber(transaction),
+          number: await this.codeGenerator.generateOrderNumber(transaction),
           name: req.body.form.name,
           kana: req.body.form.kana,
           company: req.body.form.company,
@@ -779,34 +658,7 @@ class App {
 
   async onRequestApiV1QuestionReview (req, res, next) {
     try {
-      const cartProducts = await model.cartProduct.findAll({
-        where: {
-          cartId: {[Op.eq]: req.session.cartId},
-        },
-        order: [['date', 'asc']],
-        include: [model.product],
-      })
-
-      const products = cartProducts.map(({product}, i) => {
-        return this.converter.convertProduct(product, i + 1)
-      })
-
-      const subtotal = products.reduce((memo, product) => {
-        return memo + product.price.total
-      }, 0)
-
-      const tax = Math.floor(subtotal * process.env.TAX_PERCENT / 100)
-      const total = subtotal + tax
-      const summary = {
-        subtotal,
-        subtotalText: this.converter.formatNumber(subtotal),
-        tax,
-        taxText: this.converter.formatNumber(tax),
-        total,
-        totalText: this.converter.formatNumber(total),
-      }
-
-      res.send({products, summary})
+      res.send(await this.reviewMaker.makeReviewQuestion(req))
     } catch (err) {
       next(err)
     }
@@ -822,14 +674,8 @@ class App {
       }
 
       await model.sequelize.transaction(async (transaction) => {
-        const cartProducts = await model.cartProduct.findAll({
-          where: {
-            cartId: {[Op.eq]: req.session.cartId},
-          },
-          order: [['date', 'asc']],
-          include: [model.product],
-          transaction,
-        })
+        const args = [req.session.cartId, transaction]
+        const cartProducts = await this.finder.findCartProducts(...args)
 
         if (cartProducts.length === 0) {
           res.status(400).end()
@@ -851,14 +697,10 @@ class App {
           ].join('\n')
         }
 
-        const price = cartProducts.reduce((memo, {product}) => {
-          const {price} = this.converter.convertProduct(product)
-          return memo + price.total
-        }, 0)
-
+        const {summary} = await this.reviewMaker.makeReviewQuestion(req, transaction)
         const question = await model.question.create({
           date: new Date(),
-          number: await this.generateQuestionNumber(transaction),
+          number: await this.codeGenerator.generateQuestionNumber(transaction),
           name: req.body.form.name,
           kana: req.body.form.kana,
           company: req.body.form.company,
@@ -867,7 +709,7 @@ class App {
           tel: req.body.form.tel,
           email: req.body.form.email,
           content: req.body.form.content,
-          price: price,
+          price: summary.total,
         }, {transaction})
 
         const products = []
@@ -895,62 +737,18 @@ class App {
     }
   }
 
-  async createProduct (product, transaction) {
+  async createProduct (form, transaction) {
     return await model.product.create({
-      width: product.width,
-      height: product.height,
-      depth: product.depth,
-      row: product.row,
-      thickness: product.thickness,
-      fix: product.fix,
-      back: product.back,
-      color: product.color,
-      amount: product.amount,
+      width: form.width,
+      height: form.height,
+      depth: form.depth,
+      row: form.row,
+      thickness: form.thickness,
+      fix: form.fix,
+      back: form.back,
+      color: form.color,
+      amount: form.amount,
     }, {transaction})
-  }
-
-  async generateQuestionNumber (transaction) {
-    for (let i = 0; i < 10; i += 1) {
-      const number = [
-        ('' + crypto.randomInt(10000)).padStart(4),
-        ('' + crypto.randomInt(10000)).padStart(4),
-        ('' + crypto.randomInt(10000)).padStart(4),
-      ].join('-')
-
-      const question = await model.question.findOne({
-        where: {
-          number: {[Op.eq]: number},
-        },
-      })
-
-      if (!question) {
-        return number
-      }
-    }
-
-    throw new Error('Question number generation failed')
-  }
-
-  async generateOrderNumber (transaction) {
-    for (let i = 0; i < 10; i += 1) {
-      const number = [
-        ('' + crypto.randomInt(10000)).padStart(4),
-        ('' + crypto.randomInt(10000)).padStart(4),
-        ('' + crypto.randomInt(10000)).padStart(4),
-      ].join('-')
-
-      const order = await model.order.findOne({
-        where: {
-          number: {[Op.eq]: number},
-        },
-      })
-
-      if (!order) {
-        return number
-      }
-    }
-
-    throw new Error('Order number generation failed')
   }
 
   onNotFound (req, res) {
