@@ -54,9 +54,9 @@ class CodeGenerator {
 
   generateRandomNumber () {
     return [
-      ('' + crypto.randomInt(10000)).padStart(4),
-      ('' + crypto.randomInt(10000)).padStart(4),
-      ('' + crypto.randomInt(10000)).padStart(4),
+      ('' + crypto.randomInt(10000)).padStart(4, '0'),
+      ('' + crypto.randomInt(10000)).padStart(4, '0'),
+      ('' + crypto.randomInt(10000)).padStart(4, '0'),
     ].join('-')
   }
 }
