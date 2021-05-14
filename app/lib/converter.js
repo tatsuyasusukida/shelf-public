@@ -2,16 +2,14 @@ const {ImageMaker} = require('./image-maker')
 const {PriceCalculator} = require('./price-calculator')
 
 class Converter {
-  formatNumber (value) {
-    return new Intl.NumberFormat().format(value)
+  constructor () {
+    this.imageMaker = new ImageMaker()
+    this.priceCalculator = new PriceCalculator()
   }
 
   convertProduct (product, number) {
-    const imageMaker = new ImageMaker()
-    const priceCalculator = new PriceCalculator()
-
-    const image = imageMaker.makeImage(product)
-    const price = priceCalculator.calculatePrice(product)
+    const image = this.imageMaker.makeImage(product)
+    const price = this.priceCalculator.calculatePrice(product)
 
     return {
       number,
@@ -38,6 +36,10 @@ class Converter {
       name: estimate.name,
       title: estimate.title,
     }
+  }
+
+  formatNumber (value) {
+    return new Intl.NumberFormat().format(value)
   }
 
   convertDate (date) {
