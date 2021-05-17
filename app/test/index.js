@@ -2,6 +2,7 @@ const {CodeGeneratorTest} = require('../lib/code-generator.test')
 const {ConverterTest} = require('../lib/converter.test')
 const {ImageMakerTest} = require('../lib/image-maker.test')
 const {InitializerTest} = require('../lib/initializer.test')
+const {PriceCalculatorTest} = require('../lib/price-calculator.test')
 
 class Main {
   async run () {
@@ -9,7 +10,7 @@ class Main {
       new CodeGeneratorTest(),
       new ConverterTest(),
       new ImageMakerTest(),
-      new InitializerTest(),
+      new PriceCalculatorTest(),
     ]
 
     for (const testcase of testcases) {
