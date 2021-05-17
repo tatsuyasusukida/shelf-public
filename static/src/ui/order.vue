@@ -57,64 +57,65 @@
                 span(aria-hidden='true') &raquo;
 
     template(v-if="currentView === 'review'")
-      template(v-for='product of products')
+      form(role='form')
+        template(v-for='product of products')
+          section.border-bottom.pb-3.mt-3
+            h2 商品{{product.number}}
+            +product-item
+
         section.border-bottom.pb-3.mt-3
-          h2 商品{{product.number}}
-          +product-item
+          h2 合計金額
+          .row.justify-content-end
+            .col-sm-6
+              dl.row.mb-0
+                dt.col-6 送料
+                dd.col-6 &yen;{{summary.shippingText}}
 
-      section.border-bottom.pb-3.mt-3
-        h2 合計金額
-        .row.justify-content-end
-          .col-sm-6
-            dl.row.mb-0
-              dt.col-6 送料
-              dd.col-6 &yen;{{summary.shippingText}}
+                dt.col-6(v-if="form.payment === '代金引換'") 代引手数料
+                dd.col-6(v-if="form.payment === '代金引換'") &yen;{{summary.feeText}}
 
-              dt.col-6(v-if="form.payment === '代金引換'") 代引手数料
-              dd.col-6(v-if="form.payment === '代金引換'") &yen;{{summary.feeText}}
+                dt.col-6 小計（税抜）
+                dd.col-6 &yen;{{summary.subtotalText}}
 
-              dt.col-6 小計（税抜）
-              dd.col-6 &yen;{{summary.subtotalText}}
+                dt.col-6 消費税（10％）
+                dd.col-6 &yen;{{summary.taxText}}
 
-              dt.col-6 消費税（10％）
-              dd.col-6 &yen;{{summary.taxText}}
+                dt.col-6 合計（税込）
+                dd.col-6.mb-0 &yen;{{summary.totalText}}
 
-              dt.col-6 合計（税込）
-              dd.col-6.mb-0 &yen;{{summary.totalText}}
+        section.mt-3
+          h2 注文について
+          dl
+            dt お名前
+            dd {{form.name}}
 
-      section.mt-3
-        h2 注文について
-        dl
-          dt お名前
-          dd {{form.name}}
+            dt フリガナ
+            dd {{form.kana}}
 
-          dt フリガナ
-          dd {{form.kana}}
+            dt 会社名
+            dd {{form.company}}
 
-          dt 会社名
-          dd {{form.company}}
+            dt 郵便番号
+            dd {{form.zip}}
 
-          dt 郵便番号
-          dd {{form.zip}}
+            dt 住所
+            dd {{form.address}}
 
-          dt 住所
-          dd {{form.address}}
+            dt 電話番号
+            dd {{form.tel}}
 
-          dt 電話番号
-          dd {{form.tel}}
+            dt メールアドレス
+            dd {{form.email}}
 
-          dt メールアドレス
-          dd {{form.email}}
+            dt 備考
+            dd
+              p.mb-0
+                template(v-for="(line, i) of form.memo.split('\\n')")
+                  br(v-if='i >= 1')
+                  | {{line}}
 
-          dt 備考
-          dd
-            p.mb-0
-              template(v-for="(line, i) of form.memo.split('\\n')")
-                br(v-if='i >= 1')
-                | {{line}}
-
-          dt お支払い方法
-          dd.mb-0 {{form.payment}}
+            dt お支払い方法
+            dd.mb-0 {{form.payment}}
 
         .row.mt-3
           .col-6.order-last

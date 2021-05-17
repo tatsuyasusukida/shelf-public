@@ -108,6 +108,7 @@ class App {
     this.router.delete('/api/v1/product/:productId([0-9]+)/delete/submit', this.onRequestApiV1ProductDeleteSubmit.bind(this))
     this.router.get('/api/v1/estimate/initialize', this.onRequestApiV1EstimateInitialize.bind(this))
     this.router.post('/api/v1/estimate/validate', this.onRequestApiV1EstimateValidate.bind(this))
+    this.router.post('/api/v1/estimate/review', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimateReview.bind(this))
     this.router.post('/api/v1/estimate/submit', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimateSubmit.bind(this))
     this.router.get('/api/v1/estimate/print/initialize', this.session, this.onRequestFindCart.bind(this), this.onRequestApiV1EstimatePrintInitialize.bind(this))
     this.router.get('/api/v1/order/initialize', this.onRequestApiV1OrderInitialize.bind(this))
@@ -415,6 +416,14 @@ class App {
     }
   }
 
+  async onRequestApiV1EstimateReview (req, res, next) {
+    try {
+      res.send(await this.reviewMaker.makeReviewEstimate(req))
+    } catch (err) {
+      next(err)
+    }
+  }
+
   async onRequestApiV1EstimateSubmit (req, res, next) {
     try {
       const validation = await this.validator.validateEstimate(req)
@@ -438,6 +447,7 @@ class App {
           req.body.form.email = 'shelf@loremipsum.co.jp' 
         }
 
+        const {summary} = await this.reviewMaker.makeReviewEstimate(req, transaction)
         const estimate = await model.estimate.create({
           date: new Date(),
           number: await this.codeGenerator.generateEstimateNumber(transaction),
@@ -445,14 +455,13 @@ class App {
           title: req.body.form.title,
           subscribe: req.body.form.subscribe,
           email: req.body.form.email,
+          price: summary.total,
         }, {transaction})
 
         await model.cartEstimate.create({
           cartId: req.session.cartId,
           estimateId: estimate.id,
         }, {transaction})
-
-        const products = []
 
         for (const cartProduct of cartProducts) {
           const args = [cartProduct.product, transaction]

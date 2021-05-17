@@ -54,58 +54,59 @@
                 span(aria-hidden='true') &raquo;
 
     template(v-if="currentView === 'review'")
-      template(v-for='product of products')
+      form(role='form')
+        template(v-for='product of products')
+          section.border-bottom.pb-3.mt-3
+            h2 商品{{product.number}}
+            +product-item
+
         section.border-bottom.pb-3.mt-3
-          h2 商品{{product.number}}
-          +product-item
+          h2 合計金額
+          .row.justify-content-end
+            .col-sm-6
+              dl.row.mb-0
+                dt.col-6 小計（税抜）
+                dd.col-6 &yen;{{summary.subtotalText}}
 
-      section.border-bottom.pb-3.mt-3
-        h2 合計金額
-        .row.justify-content-end
-          .col-sm-6
-            dl.row.mb-0
-              dt.col-6 小計（税抜）
-              dd.col-6 &yen;{{summary.subtotalText}}
+                dt.col-6 消費税（10％）
+                dd.col-6 &yen;{{summary.taxText}}
 
-              dt.col-6 消費税（10％）
-              dd.col-6 &yen;{{summary.taxText}}
+                dt.col-6 合計（税込）
+                dd.col-6.mb-0 &yen;{{summary.totalText}}
 
-              dt.col-6 合計（税込）
-              dd.col-6.mb-0 &yen;{{summary.totalText}}
+        section.mt-3
+          h2 お問い合わせについて
+          dl.mb-0
+            dt お問い合わせの種類
+            dd {{form.category}}
 
-      section.mt-3
-        h2 お問い合わせについて
-        dl.mb-0
-          dt お問い合わせの種類
-          dd {{form.category}}
+            dt お名前
+            dd {{form.name}}
 
-          dt お名前
-          dd {{form.name}}
+            dt フリガナ
+            dd {{form.kana}}
 
-          dt フリガナ
-          dd {{form.kana}}
+            dt 会社名
+            dd {{form.company}}
 
-          dt 会社名
-          dd {{form.company}}
+            dt 郵便番号
+            dd {{form.zip}}
 
-          dt 郵便番号
-          dd {{form.zip}}
+            dt 住所
+            dd {{form.address}}
 
-          dt 住所
-          dd {{form.address}}
+            dt 電話番号
+            dd {{form.tel}}
 
-          dt 電話番号
-          dd {{form.tel}}
+            dt メールアドレス
+            dd {{form.email}}
 
-          dt メールアドレス
-          dd {{form.email}}
-
-          dt お問い合わせの内容
-          dd.mb-0
-            p.mb-0
-              template(v-for="(line, i) of form.content.split('\\n')")
-                br(v-if='i >= 1')
-                | {{line}}
+            dt お問い合わせの内容
+            dd.mb-0
+              p.mb-0
+                template(v-for="(line, i) of form.content.split('\\n')")
+                  br(v-if='i >= 1')
+                  | {{line}}
 
         .row.mt-3
           .col-6.order-last

@@ -62,6 +62,31 @@ class ReviewMaker {
 
     return {products, summary}
   }
+
+  async makeReviewEstimate (req, transaction) {
+    const {cartId} = req.session
+    const cartProducts = await this.finder.findCartProducts(cartId)
+    const products = cartProducts.map(({product}, i) => {
+      return this.converter.convertProduct(product, i + 1)
+    })
+
+    const subtotal = products.reduce((memo, product) => {
+      return memo + product.price.total
+    }, 0)
+
+    const tax = Math.floor(subtotal * process.env.TAX_PERCENT / 100)
+    const total = subtotal + tax
+    const summary = {
+      subtotal,
+      subtotalText: this.converter.formatNumber(subtotal),
+      tax,
+      taxText: this.converter.formatNumber(tax),
+      total,
+      totalText: this.converter.formatNumber(total),
+    }
+
+    return {products, summary}
+  }
 }
 
 module.exports.ReviewMaker = ReviewMaker

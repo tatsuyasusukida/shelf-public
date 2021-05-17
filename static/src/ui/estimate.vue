@@ -1,4 +1,6 @@
 <template lang="pug">
+  include ./mixin/product-item
+
   .container-fluid
     h1.mt-3 見積書の発行
     template(v-if="currentView === 'index'")
@@ -40,15 +42,36 @@
 
     template(v-if="currentView === 'review'")
       form(role='form')
-        dl
-          dt 宛名
-          dd {{form.name}} {{form.title}}
+        template(v-for='product of products')
+          section.border-bottom.pb-3.mt-3
+            h2 商品{{product.number}}
+            +product-item
 
-          dt メールマガジン
-          dd {{form.subscribe}}
+        section.border-bottom.pb-3.mt-3
+          h2 合計金額
+          .row.justify-content-end
+            .col-sm-6
+              dl.row.mb-0
+                dt.col-6 小計（税抜）
+                dd.col-6 &yen;{{summary.subtotalText}}
 
-          dt(v-if="form.subscribe === '受け取る'") メールアドレス
-          dd(v-if="form.subscribe === '受け取る'") {{form.email}}
+                dt.col-6 消費税（10％）
+                dd.col-6 &yen;{{summary.taxText}}
+
+                dt.col-6 合計（税込）
+                dd.col-6.mb-0 &yen;{{summary.totalText}}
+
+        section.mt-3
+          h2 見積書について
+          dl
+            dt 宛名
+            dd {{form.name}} {{form.title}}
+
+            dt メールマガジン
+            dd {{form.subscribe}}
+
+            dt(v-if="form.subscribe === '受け取る'") メールアドレス
+            dd(v-if="form.subscribe === '受け取る'") {{form.email}}
 
         .row
           .col-6.order-last
@@ -63,75 +86,9 @@
 </template>
 
 <script>
-  import BaseMixin from './mixin/base'
+  import ContactFormMixin from './mixin/contact-form'
 
   export default {
-    mixins: [BaseMixin],
-
-    data () {
-      return {
-        form: null,
-        validation: null,
-        options: null,
-        currentView: 'index',
-      }
-    },
-
-    methods: {
-      async initialize () {
-        const url = this.api + 'initialize'
-        const response = await fetch(url)
-        const body = await response.json()
-
-        this.form = body.form
-        this.validation = body.validation
-        this.options = body.options
-      },
-
-      async onClickButtonNext () {
-        const url = this.api + 'validate'
-        const options = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({form: this.form}),
-        }
-
-        const response = await fetch(url, options)
-        const body = await response.json()
-
-        this.validation = body.validation
-
-        if (this.validation.ok) {
-          this.currentView = 'review'
-          window.scrollTo(0, 0)
-        } else {
-          window.scrollTo(0, 0)
-        }
-      },
-
-      async onClickButtonPrevious () {
-        this.currentView = 'index'
-        window.scrollTo(0, 0)
-      },
-
-      async onClickButtonSubmit () {
-        const url = this.api + 'submit'
-        const options = {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({form: this.form}),
-        }
-        const response = await fetch(url, options)
-        const body = await response.json()
-
-        if (body.ok) {
-          window.location.assign(body.redirect)
-        }
-      },
-    },
+    mixins: [ContactFormMixin],
   }
 </script>
