@@ -4,6 +4,7 @@ const {ImageMakerTest} = require('../lib/image-maker.test')
 const {InitializerTest} = require('../lib/initializer.test')
 const {PriceCalculatorTest} = require('../lib/price-calculator.test')
 const {ReviewMakerTest} = require('../lib/review-maker.test')
+const {ValidatorTest} = require('../lib/validator.test')
 
 class Main {
   async run () {
@@ -13,6 +14,7 @@ class Main {
       new ImageMakerTest(),
       new PriceCalculatorTest(),
       new ReviewMakerTest(),
+      new ValidatorTest(),
     ]
 
     for (const testcase of testcases) {

@@ -283,9 +283,9 @@ class Validator {
     })
   }
 
-  isValidField (validation) {
-    return Object.keys(validation).every(key => {
-      return key === 'ok' || validation[key] === true
+  isValidField (validationField) {
+    return Object.keys(validationField).every(key => {
+      return key === 'ok' || validationField[key] === true
     })
   }
 }
