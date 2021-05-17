@@ -3,6 +3,7 @@ const {ConverterTest} = require('../lib/converter.test')
 const {ImageMakerTest} = require('../lib/image-maker.test')
 const {InitializerTest} = require('../lib/initializer.test')
 const {PriceCalculatorTest} = require('../lib/price-calculator.test')
+const {ReviewMakerTest} = require('../lib/review-maker.test')
 
 class Main {
   async run () {
@@ -11,6 +12,7 @@ class Main {
       new ConverterTest(),
       new ImageMakerTest(),
       new PriceCalculatorTest(),
+      new ReviewMakerTest(),
     ]
 
     for (const testcase of testcases) {
