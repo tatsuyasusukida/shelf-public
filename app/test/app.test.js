@@ -22,6 +22,29 @@ class AppTest extends TestBase {
     await this._testStatus200('http://127.0.0.1:3000/order/finish/')
     await this._testStatus200('http://127.0.0.1:3000/question/')
     await this._testStatus200('http://127.0.0.1:3000/question/finish/')
+
+    await this._testStatus200('http://127.0.0.1:3000/static/css/bootstrap.min.css')
+    await this._testStatus200('http://127.0.0.1:3000/static/css/bootstrap-reboot.min.css')
+    await this._testStatus200('http://127.0.0.1:3000/static/css/bootstrap-grid.min.css')
+    await this._testStatus200('http://127.0.0.1:3000/static/css/bootstrap-utilities.min.css')
+    await this._testStatus200('http://127.0.0.1:3000/static/css/bootstrap-icons.css')
+    await this._testStatus200('http://127.0.0.1:3000/static/css/screen.css')
+    await this._testStatus200('http://127.0.0.1:3000/static/css/print.css')
+
+    const search = '?' + querystring.stringify({
+      width: '15',
+      height: '49',
+      depth: '19',
+      row: '1',
+      thickness: '17',
+      fix: 'ビス（固定）',
+      back: 'なし',
+      color: 'ナチュラル',
+      amount: '1',
+    })
+
+    await this._testStatus200('http://127.0.0.1:3000/render/front.svg' + search)
+    await this._testStatus200('http://127.0.0.1:3000/render/side.svg' + search)
   }
 
   async createProduct () {
