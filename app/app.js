@@ -85,6 +85,7 @@ class App {
     this.router.get('/estimate/finish/', (req, res) => res.render('estimate-finish'))
     this.router.get('/estimate/print/', (req, res) => res.render('estimate-print'))
     this.router.get('/order/', (req, res) => res.render('order'))
+    this.router.get('/order/payment/', (req, res) => res.render('order-payment'))
     this.router.get('/order/finish/', (req, res) => res.render('order-finish'))
     this.router.get('/question/', (req, res) => res.render('question'))
     this.router.get('/question/finish/', (req, res) => res.render('question-finish'))

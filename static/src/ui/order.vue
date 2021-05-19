@@ -52,7 +52,7 @@
         .row.justify-content-end
           .col-6
             .d-grid
-              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonNext')
+              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonNext' id='buttonNext')
                 | 確認画面へ進む 
                 span(aria-hidden='true') &raquo;
 
@@ -120,10 +120,10 @@
         .row.mt-3
           .col-6.order-last
             .d-grid
-              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonSubmit') 注文を確定する
+              button.btn.btn-primary(type='submit' v-on:click.prevent='onClickButtonSubmit' id='buttonSubmit') 注文を確定する
           .col-6
             .d-grid
-              button.btn.btn-link(type='button' v-on:click.prevent='onClickButtonPrevious')
+              button.btn.btn-link(type='button' v-on:click.prevent='onClickButtonPrevious' id='buttonPrevious')
                 span(aria-hidden='true') &laquo; 
                 | 入力画面へ戻る
 </template>
