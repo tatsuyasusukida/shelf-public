@@ -708,6 +708,7 @@ class App {
         const question = await model.question.create({
           date: new Date(),
           number: await this.codeGenerator.generateQuestionNumber(transaction),
+          category: req.body.form.category,
           name: req.body.form.name,
           kana: req.body.form.kana,
           company: req.body.form.company,
