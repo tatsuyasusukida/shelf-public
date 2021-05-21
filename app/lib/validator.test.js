@@ -480,7 +480,6 @@ class ValidatorTest extends TestBase {
 
     assert.deepStrictEqual(actual, expected)
   }
-
 }
 
 if (require.main === module) {
