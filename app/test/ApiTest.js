@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {TestBase} = require('../test/test-base')
+const {TestBase} = require('../util/TestBase')
 const fetch = require('node-fetch')
 const querystring = require('querystring')
 

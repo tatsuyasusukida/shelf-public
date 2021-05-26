@@ -1,4 +1,4 @@
-const {Finder} = require('./finder')
+const {Finder} = require('./Finder')
 const crypto = require('crypto')
 
 class CodeGenerator {

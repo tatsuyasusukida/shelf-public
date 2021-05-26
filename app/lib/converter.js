@@ -1,5 +1,5 @@
-const {ImageMaker} = require('./image-maker')
-const {PriceCalculator} = require('./price-calculator')
+const {ImageMaker} = require('./ImageMaker')
+const {PriceCalculator} = require('./PriceCalculator')
 
 class Converter {
   constructor () {

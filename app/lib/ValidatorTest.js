@@ -1,6 +1,6 @@
 const assert = require('assert')
-const {TestBase} = require('../test/test-base')
-const {Validator} = require('./validator')
+const {TestBase} = require('../util/TestBase')
+const {Validator} = require('./Validator')
 
 class ValidatorTest extends TestBase {
   async testMakeValidationOrder () {

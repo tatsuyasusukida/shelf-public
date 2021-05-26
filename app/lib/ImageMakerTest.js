@@ -1,7 +1,7 @@
 const assert = require('assert')
 const querystring = require('querystring')
-const {TestBase} = require('../test/test-base')
-const {ImageMaker} = require('./image-maker')
+const {TestBase} = require('../util/TestBase')
+const {ImageMaker} = require('./ImageMaker')
 
 class ImageMakerTest extends TestBase {
   async testMakeImage () {

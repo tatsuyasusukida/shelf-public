@@ -1,5 +1,5 @@
 const querystring = require('querystring')
-const {Initializer} = require('./initializer')
+const {Initializer} = require('./Initializer')
 
 class ImageMaker {
   constructor () {

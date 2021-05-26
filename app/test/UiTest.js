@@ -1,11 +1,12 @@
 const assert = require('assert')
-const {TestBase} = require('../test/test-base')
+const {TestBase} = require('../util/TestBase')
 const puppeteer = require('puppeteer')
 
 class UiTest extends TestBase {
   constructor () {
     super()
     this.params = {
+      isHeadless: process.env.IS_HEADLESS !== '0',
       baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3000',
       timeout: parseInt(process.env.TIMEOUT || '1000', 10),
     }
@@ -13,7 +14,7 @@ class UiTest extends TestBase {
 
   async launchBrowser () {
     return await puppeteer.launch({
-      headless: process.env.IS_HEADLESS !== '0',
+      headless: this.params.isHeadless,
     })    
   }
 

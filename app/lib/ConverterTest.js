@@ -1,6 +1,6 @@
 const assert = require('assert')
-const {TestBase} = require('../test/test-base')
-const {Converter} = require('./converter')
+const {TestBase} = require('../util/TestBase')
+const {Converter} = require('./Converter')
 
 class ConverterTest extends TestBase {
   async testConvertProduct () {

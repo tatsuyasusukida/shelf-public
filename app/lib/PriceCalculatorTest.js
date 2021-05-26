@@ -1,7 +1,7 @@
 const assert = require('assert')
 const querystring = require('querystring')
-const {TestBase} = require('../test/test-base')
-const {PriceCalculator} = require('./price-calculator')
+const {TestBase} = require('../util/TestBase')
+const {PriceCalculator} = require('./PriceCalculator')
 
 class PriceCalculatorTest extends TestBase {
   async testCalculatePrice () {

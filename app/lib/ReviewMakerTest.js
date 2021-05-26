@@ -1,7 +1,7 @@
 const assert = require('assert')
 const querystring = require('querystring')
-const {TestBase} = require('../test/test-base')
-const {ReviewMaker} = require('./review-maker')
+const {TestBase} = require('../util/TestBase')
+const {ReviewMaker} = require('./ReviewMaker')
 
 class ReviewMakerTest extends TestBase {
   async testMakeReviewEstimate () {

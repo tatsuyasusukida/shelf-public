@@ -1,7 +1,7 @@
 const assert = require('assert')
 const querystring = require('querystring')
-const {TestBase} = require('../test/test-base')
-const {Initializer} = require('./initializer')
+const {TestBase} = require('../util/TestBase')
+const {Initializer} = require('./Initializer')
 
 class InitializerTest extends TestBase {
   async testMakeFormOrder () {

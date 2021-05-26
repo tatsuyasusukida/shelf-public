@@ -1,5 +1,5 @@
 const {Finder} = require('./finder')
-const {Converter} = require('./converter')
+const {Converter} = require('./Converter')
 
 class ReviewMaker {
   constructor () {

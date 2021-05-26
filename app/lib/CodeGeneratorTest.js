@@ -1,6 +1,6 @@
 const assert = require('assert')
-const {TestBase} = require('../test/test-base')
-const {CodeGenerator} = require('./code-generator')
+const {TestBase} = require('../util/TestBase')
+const {CodeGenerator} = require('./CodeGenerator')
 
 class CodeGeneratorTest extends TestBase {
   async testGenerateEstimateNumber () {
