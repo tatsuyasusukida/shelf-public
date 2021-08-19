@@ -47,6 +47,7 @@ class App {
         user: process.env.STORE_USER,
         password: process.env.STORE_PASSWORD,
         database: process.env.STORE_DATABASE,
+        socketPath: process.env.STORE_SOCKET,
       }),
     })
 
@@ -619,6 +620,8 @@ class App {
             orderId: order.id,
             productId: product.id,
           }, {transaction})
+
+          await cartProduct.destroy({transaction})
         }
 
         const ok = true

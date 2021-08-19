@@ -1,4 +1,4 @@
-const {Finder} = require('./finder')
+const {Finder} = require('./Finder')
 const {Converter} = require('./Converter')
 
 class ReviewMaker {
