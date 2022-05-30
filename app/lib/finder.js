@@ -31,14 +31,17 @@ class Finder {
   }
 
   async findCartProducts (cartId, transaction) {
-    return await model.cartProduct.findAll({
-      where: {
-        cartId: {[Op.eq]: cartId},
-      },
-      order: [['date', 'asc']],
-      include: [{model: model.product, as: 'product'}],
-      transaction,
-    })
+    return (await model.cartProduct.findAll({
+        where: {
+          cartId: {[Op.eq]: cartId},
+        },
+        order: [['date', 'asc']],
+        include: [{model: model.product, as: 'product'}],
+        transaction,
+      }))
+      .filter((cartProduct) => {
+        return cartProduct.product !== null
+      })
   }
 
   async findEstimate (estimateId, transaction) {
@@ -61,14 +64,17 @@ class Finder {
   }
 
   async findEstimateProducts (estimateId, transaction) {
-    return await model.estimateProduct.findAll({
-      where: {
-        estimateId: {[Op.eq]: estimateId},
-      },
-      order: [['sort', 'asc']],
-      include: [{model: model.product, as: 'product'}],
-      transaction,
-    })
+    return (await model.estimateProduct.findAll({
+        where: {
+          estimateId: {[Op.eq]: estimateId},
+        },
+        order: [['sort', 'asc']],
+        include: [{model: model.product, as: 'product'}],
+        transaction,
+      }))
+      .filter((estimateProduct) => {
+        return estimateProduct.product !== null
+      })
   }
 
   async findEstimateByNumber (number, transaction) {
