@@ -36,7 +36,7 @@ class Finder {
         cartId: {[Op.eq]: cartId},
       },
       order: [['date', 'asc']],
-      include: [model.product],
+      include: [{model: model.product, as: 'product'}],
       transaction,
     })
   }
@@ -66,7 +66,7 @@ class Finder {
         estimateId: {[Op.eq]: estimateId},
       },
       order: [['sort', 'asc']],
-      include: [model.product],
+      include: [{model: model.product, as: 'product'}],
       transaction,
     })
   }
