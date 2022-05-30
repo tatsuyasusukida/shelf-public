@@ -1,5 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
-  const question = sequelize.define('question', {
+  const question = sequelize.define('shelfQuestion', {
     date: {type: DataTypes.DATE, allowNull: false},
     number: {type: DataTypes.STRING, allowNull: false},
     category: {type: DataTypes.STRING, allowNull: false},
@@ -12,7 +12,7 @@ module.exports = function (sequelize, DataTypes) {
     email: {type: DataTypes.STRING, allowNull: false},
     content: {type: DataTypes.TEXT, allowNull: false},
     price: {type: DataTypes.INTEGER, allowNull: false},
-  })
+  }, {freezeTableName: true})
 
   return question
 }

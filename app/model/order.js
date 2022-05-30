@@ -1,5 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
-  const order = sequelize.define('order', {
+  const order = sequelize.define('shelfOrder', {
     date: {type: DataTypes.DATE, allowNull: false},
     number: {type: DataTypes.STRING, allowNull: false},
     name: {type: DataTypes.STRING, allowNull: false},
@@ -12,7 +12,7 @@ module.exports = function (sequelize, DataTypes) {
     memo: {type: DataTypes.TEXT, allowNull: false},
     payment: {type: DataTypes.STRING, allowNull: false},
     price: {type: DataTypes.INTEGER, allowNull: false},
-  })
+  }, {freezeTableName: true})
 
   return order
 }

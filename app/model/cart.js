@@ -1,5 +1,6 @@
 module.exports = function (sequelize, DataTypes) {
-  const cart = sequelize.define('cart', {})
+  const cart = sequelize.define('shelfCart', {
+  }, {freezeTableName: true})
 
   return cart
 }

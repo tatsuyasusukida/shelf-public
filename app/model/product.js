@@ -1,5 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
-  const product = sequelize.define('product', {
+  const product = sequelize.define('shelfProduct', {
     width: {type: DataTypes.INTEGER, allowNull: false},
     height: {type: DataTypes.INTEGER, allowNull: false},
     depth: {type: DataTypes.INTEGER, allowNull: false},
@@ -9,7 +9,7 @@ module.exports = function (sequelize, DataTypes) {
     back: {type: DataTypes.STRING, allowNull: false},
     color: {type: DataTypes.STRING, allowNull: false},
     amount: {type: DataTypes.INTEGER, allowNull: false},
-  })
+  }, {freezeTableName: true})
 
   return product
 }
