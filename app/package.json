@@ -4,17 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "start": "node script/serve.js",
     "dev": "nodemon -r dotenv/config script/serve.js",
     "fixture": "node -r dotenv/config script/fixture.js",
     "test": "node -r dotenv/config script/test.js",
-    "activate": "gcloud config configurations activate default",
-    "image": "echo gcr.io/`gcloud config get-value project`/shelf-public:latest",
-    "build": "rm -rf static && cp -r ../static/dist static && docker image build -t shelf-public:latest .",
-    "tag": "docker image tag shelf-public:latest `npm run -s image`",
-    "push": "docker image push `npm run -s image`",
-    "deploy": "gcloud run deploy shelf-public --image `npm run -s image` --platform managed --region asia-northeast1",
-    "staging": "npm run activate && npm run build && npm run tag && npm run push && npm run deploy",
-    "dump": "mysqldump -u root shelf > dump.sql"
+    "deploy": "gcloud run deploy shelf-public --source . --region asia-northeast1 --platform managed --allow-unauthenticated"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
@@ -33,5 +27,8 @@
   "devDependencies": {
     "node-fetch": "^2.6.1",
     "puppeteer": "^9.1.1"
+  },
+  "engines": {
+    "node": "16"
   }
 }

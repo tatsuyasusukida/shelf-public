@@ -1,5 +1,5 @@
 /log/
 /node_modules/
 /static/
-/dump.sql
 /.env
+/dump.sql
